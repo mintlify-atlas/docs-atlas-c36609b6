@@ -1,0 +1,205 @@
+---
+title: Layout Component
+description: The main layout wrapper that provides consistent structure, styling, and functionality across all pages
+---
+
+## Overview
+
+The `Layout.astro` component is the primary layout wrapper for the entire portfolio. It provides the foundational HTML structure, global styles, font loading, SEO metadata, and includes the Header and Footer components. All pages in the portfolio are wrapped with this layout component.
+
+## Location
+
+`src/layouts/Layout.astro`
+
+## Props
+
+The Layout component accepts the following props:
+
+<ParamField path="title" type="string" default="Hazielgmz">
+  The page title displayed in the browser tab
+</ParamField>
+
+<ParamField path="description" type="string" default="Portafolio">
+  The page description for SEO purposes
+</ParamField>
+
+## Code Structure
+
+### Props Interface
+
+```astro
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = "Hazielgmz", description = "Portafolio" } = Astro.props;
+```
+
+### Dependencies
+
+The layout imports and uses several key dependencies:
+
+```astro
+import "@fontsource-variable/onest"
+import Header from '../components/Header.astro';
+import Footer from "../components/Footer.astro";
+import { ClientRouter } from "astro:transitions";
+import '../styles/global.css';
+```
+
+## Features
+
+### 1. Font Loading
+
+Uses the Onest Variable font family:
+```astro
+import "@fontsource-variable/onest"
+```
+
+### 2. Client-Side Routing
+
+Enables smooth page transitions with Astro's ClientRouter:
+```astro
+<ClientRouter />
+```
+
+### 3. Alpine.js Integration
+
+Includes Alpine.js for interactive components (used in Tools component):
+```astro
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+```
+
+### 4. Animated Background
+
+Features a gradient background with radial blur effects:
+
+```astro
+<div
+  class="absolute inset-0 z-[-2] min-h-screen w-full 
+  bg-gradient-to-br from-indigo-100 via-slate-100 to-blue-50
+  dark:from-indigo-900 dark:via-slate-900 dark:to-blue-900
+  
+  before:content-[''] before:absolute before:inset-0 
+  before:bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.25),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(147,197,253,0.25),transparent_50%)]
+  dark:before:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.25),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(139,92,246,0.2),transparent_50%)]
+  
+  before:blur-3xl"
+></div>
+```
+
+### 5. Scroll-Based Header Animation
+
+The header nav gets a blur effect on scroll:
+
+```css
+#header-nav {
+  animation: blur linear both 0.5s;
+  animation-timeline: scroll();
+  animation-range: 0 500px;
+}
+
+@keyframes blur {
+  from {
+    background-color: transparent;
+    backdrop-filter: blur(0px);
+    border: none;
+  }
+  to {
+    backdrop-filter: blur(20px);
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.1);
+    padding: 0.25rem 0.75rem;
+    background-color: rgba(229, 229, 229, 0.8);
+    border-radius: 9999px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+}
+```
+
+## Usage Example
+
+```astro
+---
+import Layout from '../layouts/Layout.astro';
+import AboutMe from '../components/AboutMe.astro';
+import Career from '../components/Career.astro';
+import Projects from '../components/Projects.astro';
+---
+
+<Layout 
+  title="John Doe - Full Stack Developer" 
+  description="Portfolio showcasing my work and experience"
+>
+  <AboutMe />
+  <Career />
+  <Projects />
+</Layout>
+```
+
+## Customization Tips
+
+### Change Font Family
+
+Replace the Onest font with your preferred font:
+
+```astro
+// Remove:
+import "@fontsource-variable/onest"
+
+// Add:
+import "@fontsource/your-font-name"
+
+// Update CSS:
+html {
+  font-family: "Your Font Name", sans-serif;
+}
+```
+
+### Modify Background Gradient
+
+Customize the gradient colors in the background div:
+
+```astro
+<div
+  class="absolute inset-0 z-[-2] min-h-screen w-full 
+  bg-gradient-to-br from-purple-100 via-pink-100 to-red-50
+  dark:from-purple-900 dark:via-pink-900 dark:to-red-900"
+></div>
+```
+
+### Adjust Scroll Animation Range
+
+Modify when the header animation triggers:
+
+```css
+#header-nav {
+  animation: blur linear both 0.5s;
+  animation-timeline: scroll();
+  animation-range: 0 300px; /* Change from 500px */
+}
+```
+
+### Enable/Disable Reduced Motion
+
+The layout respects user preferences for reduced motion:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+```
+
+## Accessibility Features
+
+- Smooth scroll behavior with reduced motion support
+- Semantic HTML structure
+- Proper meta viewport configuration
+- Language attribute set to Spanish (`lang="es"`)
+
+## Dark Mode Support
+
+The layout fully supports dark mode through Tailwind's `dark:` variants, with separate gradient and animation styles for light and dark themes.

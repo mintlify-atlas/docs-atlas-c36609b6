@@ -1,0 +1,283 @@
+---
+title: Header Component
+description: Fixed navigation header with scroll-based highlighting and social media links
+---
+
+## Overview
+
+The `Header.astro` component provides a sticky navigation bar at the top of the page. It features smooth scroll navigation, active section highlighting using IntersectionObserver, and includes social media links to GitHub and LinkedIn.
+
+## Location
+
+`src/components/Header.astro`
+
+## Features
+
+### 1. Navigation Items
+
+The header displays three main navigation links:
+
+```javascript
+const navItems = [
+  {
+    title: "Trayectoria",
+    label: "Trayectoria",
+    url: "/#trayectoria",
+  },
+  {
+    title: "Proyectos",
+    label: "Proyectos",
+    url: "/#proyectos",
+  },
+  {
+    title: "Herramientas",
+    label: "Herramientas",
+    url: "/#herramientas",
+  },
+]
+```
+
+### 2. Social Media Links
+
+Includes hardcoded links to:
+- GitHub profile
+- LinkedIn profile
+
+```astro
+<a href="https://github.com/Hazielgmz" target="_blank">
+  <span class="sr-only">GitHub</span>
+  <svg viewBox="0 0 16 16" aria-hidden="true" width="24" height="24">
+    <!-- GitHub icon SVG -->
+  </svg>
+</a>
+
+<a href="https://www.linkedin.com/in/hazielgmz/" target="_blank">
+  <span class="sr-only">LinkedIn</span>
+  <svg viewBox="0 0 24 24" aria-hidden="true" width="24" height="24">
+    <!-- LinkedIn icon SVG -->
+  </svg>
+</a>
+```
+
+### 3. Active Section Highlighting
+
+Uses IntersectionObserver API to highlight the current section:
+
+```javascript
+const callback = (entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      navItems.forEach((item) => {
+        if (item.getAttribute("aria-label") == entry.target.id) {
+          item.classList.add("text-blue-500")
+        } else {
+          item.classList.remove("text-blue-500")
+        }
+      })
+    }
+  })
+}
+
+const observer = new IntersectionObserver(callback, {
+  root: null,
+  rootMargin: "0px",
+  threshold: 0.3,
+})
+```
+
+### 4. Scroll-Based Blur Effect
+
+The header background blurs as you scroll down (animation defined in Layout component):
+
+```astro
+<nav id="header-nav" class="flex px-4 text-medium font-medium rounded-full...">
+```
+
+## Code Structure
+
+### HTML Structure
+
+```astro
+<header class="fixed top-0 z-10 flex items-center justify-center w-full mx-auto mt-2">
+  <nav id="header-nav" class="flex px-4 text-medium font-medium rounded-full text-gray-600 dark:text-gray-200 justify-center items-center">
+    <div class="social-links">
+      {navItems.map((link) => (
+        <a
+          class="relative block px-2 py-2 transition hover:text-blue-500 dark:hover:text-blue-500"
+          aria-label={link.label}
+          href={link.url}
+        >
+          {link.title}
+        </a>
+      ))}
+      
+      <!-- Social media icons -->
+    </div>
+  </nav>
+</header>
+```
+
+### Styling
+
+```css
+nav {
+  display: ruby;
+  align-items: right;
+  justify-content: space-between;
+}
+
+nav a {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  padding-top: 0.25em;
+  padding-bottom: 0.25em;
+  color: inherit;
+  border-bottom: 4px solid transparent;
+  text-decoration: none;
+}
+
+.social-links,
+.social-links a {
+  display: flex;
+}
+
+@media (max-width: 500px) {
+  .social-links {
+    text-size-adjust: 90%;
+  }
+}
+```
+
+## Usage Example
+
+The Header is typically imported and used in the Layout component:
+
+```astro
+---
+import Header from '../components/Header.astro';
+---
+
+<body>
+  <Header />
+  <slot />
+  <Footer />
+</body>
+```
+
+## Customization Tips
+
+### Add New Navigation Items
+
+Update the `navItems` array:
+
+```javascript
+const navItems = [
+  {
+    title: "About",
+    label: "About",
+    url: "/#about",
+  },
+  {
+    title: "Skills",
+    label: "Skills",
+    url: "/#skills",
+  },
+  // Add more items...
+]
+```
+
+### Change Social Media Links
+
+Replace the GitHub and LinkedIn URLs:
+
+```astro
+<a href="https://github.com/your-username" target="_blank">
+  <!-- GitHub icon -->
+</a>
+
+<a href="https://www.linkedin.com/in/your-profile/" target="_blank">
+  <!-- LinkedIn icon -->
+</a>
+```
+
+### Add More Social Icons
+
+Add additional social media links after the existing ones:
+
+```astro
+<a href="https://twitter.com/your-handle" target="_blank">
+  <span class="sr-only">Twitter</span>
+  <svg viewBox="0 0 24 24" aria-hidden="true" width="24" height="24">
+    <!-- Twitter icon SVG -->
+  </svg>
+</a>
+```
+
+### Adjust IntersectionObserver Threshold
+
+Modify when sections are considered "active":
+
+```javascript
+const observer = new IntersectionObserver(callback, {
+  root: null,
+  rootMargin: "0px",
+  threshold: 0.5, // Change from 0.3 to trigger at 50% visibility
+})
+```
+
+### Change Active Link Color
+
+Modify the hover and active state colors:
+
+```astro
+<a
+  class="relative block px-2 py-2 transition hover:text-purple-500 dark:hover:text-purple-400"
+  aria-label={link.label}
+  href={link.url}
+>
+```
+
+And update the JavaScript:
+
+```javascript
+if (item.getAttribute("aria-label") == entry.target.id) {
+  item.classList.add("text-purple-500") // Change from text-blue-500
+} else {
+  item.classList.remove("text-purple-500")
+}
+```
+
+## Accessibility Features
+
+- Screen reader text for icon-only links (`sr-only` class)
+- Proper `aria-label` attributes for navigation items
+- Semantic `<header>` and `<nav>` elements
+- High contrast hover states
+- Responsive design for mobile devices
+
+## Integration with Astro Page Transitions
+
+The script uses Astro's `astro:page-load` event to ensure the IntersectionObserver works correctly with client-side routing:
+
+```javascript
+document.addEventListener("astro:page-load", () => {
+  // Observer setup...
+  
+  // Cleanup on page hide
+  document.onvisibilitychange = () => {
+    if (document.visibilityState === "hidden") {
+      observer.disconnect()
+    } else {
+      sections.forEach((section) => {
+        observer.observe(section)
+      })
+    }
+  }
+})
+```
+
+## Dark Mode Support
+
+The header automatically adapts to dark mode:
+- Light mode: `text-gray-600` with `hover:text-blue-500`
+- Dark mode: `dark:text-gray-200` with `dark:hover:text-blue-500`

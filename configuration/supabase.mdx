@@ -1,0 +1,321 @@
+---
+title: Supabase Setup
+description: Configure Supabase as the backend database for your Astro Portfolio
+---
+
+## Overview
+
+This portfolio uses [Supabase](https://supabase.com) as a backend database to store and manage dynamic content including personal information, career history, projects, tools, and certificates.
+
+## Required Tables
+
+You need to create the following tables in your Supabase project:
+
+### 1. about_me
+
+Stores personal/bio information displayed on the homepage.
+
+```sql
+CREATE TABLE about_me (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  bio TEXT,
+  profile_image TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**Fields:**
+- `name` - Your full name (displayed as the main heading)
+- `bio` - Multi-line biography (supports `**bold**` markdown syntax)
+- `profile_image` - URL to your profile image
+
+**Query example from source:**
+```javascript
+const { data: aboutMe, error } = await supabase
+  .from("about_me")
+  .select("*")
+  .single() // Returns one record
+```
+
+### 2. careers
+
+Stores your work experience and career history.
+
+```sql
+CREATE TABLE careers (
+  id SERIAL PRIMARY KEY,
+  position TEXT NOT NULL,
+  company TEXT NOT NULL,
+  description TEXT,
+  contact TEXT,
+  period TEXT NOT NULL,
+  visible BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**Fields:**
+- `position` - Job title/role
+- `company` - Company name
+- `description` - Job responsibilities and achievements
+- `contact` - Optional contact email for that position
+- `period` - Time period (e.g., "2020 - 2023", "Jan 2022 - Present")
+- `visible` - Toggle to show/hide from public view
+
+**Query example from source:**
+```javascript
+const { data: careers, error } = await supabase
+  .from("careers")
+  .select("*")
+  .order('period', { ascending: false })
+  .eq('visible', true)
+```
+
+### 3. projects
+
+Stores your portfolio projects.
+
+```sql
+CREATE TABLE projects (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  image TEXT,
+  codeLink TEXT,
+  PreviewLink TEXT,
+  visible BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**Fields:**
+- `title` - Project name
+- `description` - Project description
+- `image` - Project screenshot/preview image URL
+- `codeLink` - GitHub repository URL
+- `PreviewLink` - Live demo URL
+- `visible` - Toggle to show/hide from public view
+
+**Query example from source:**
+```javascript
+const { data: projects, error } = await supabase
+  .from("projects")
+  .select("*")
+  .eq('visible', true)
+  .order('created_at', { ascending: false })
+```
+
+### 4. tools
+
+Stores technologies and tools you use.
+
+```sql
+CREATE TABLE tools (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  icon TEXT,
+  visible BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**Fields:**
+- `name` - Tool/technology name (e.g., "React", "Node.js")
+- `type` - Category: `Frontend`, `Backend`, `Database`, or `Framework`
+- `icon` - URL to tool icon/logo
+- `visible` - Toggle to show/hide from public view
+
+**Color coding by type:**
+- `frontend` - Blue badge
+- `backend` - Green badge
+- `database` - Yellow badge
+- `framework` - Purple badge
+
+**Query example from source:**
+```javascript
+const { data, error } = await supabase
+  .from("tools")
+  .select("*")
+  .eq("type", "Frontend")
+  .eq("visible", true)
+  .order("name")
+```
+
+### 5. certificates
+
+Stores your professional certificates and certifications.
+
+```sql
+CREATE TABLE certificates (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  issuer TEXT NOT NULL,
+  type TEXT,
+  date DATE,
+  certificate_url TEXT,
+  visible BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**Fields:**
+- `title` - Certificate name
+- `issuer` - Issuing organization
+- `type` - Certificate type/category
+- `date` - Date issued
+- `certificate_url` - Link to view the certificate
+- `visible` - Toggle to show/hide from public view
+
+### 6. project_tool (Junction Table)
+
+Links projects to the tools/technologies used.
+
+```sql
+CREATE TABLE project_tool (
+  id SERIAL PRIMARY KEY,
+  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+  tool_id INTEGER REFERENCES tools(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(project_id, tool_id)
+);
+```
+
+**Query example from source:**
+```javascript
+const { data: projectTools, error } = await supabase
+  .from("project_tool")
+  .select("project_id, tool_id")
+  .in('project_id', projects.map(p => p.id))
+```
+
+### 7. certificate_tool (Junction Table)
+
+Links certificates to related tools/technologies.
+
+```sql
+CREATE TABLE certificate_tool (
+  id SERIAL PRIMARY KEY,
+  certificate_id INTEGER REFERENCES certificates(id) ON DELETE CASCADE,
+  tool_id INTEGER REFERENCES tools(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(certificate_id, tool_id)
+);
+```
+
+**Query example from source:**
+```javascript
+const { data, error } = await supabase
+  .from("certificate_tool")
+  .select(`
+    certificate_id,
+    certificates:certificate_id (
+      id, title, issuer, type, date, certificate_url, visible
+    )
+  `)
+  .eq("tool_id", toolId)
+  .filter("certificates.visible", "eq", true)
+```
+
+## Database Relationships
+
+```
+projects ────┐
+             ├──── project_tool ───── tools
+certificates ┘                         │
+                                       │
+                    certificate_tool ──┘
+```
+
+- **Many-to-Many**: Projects ↔ Tools (via `project_tool`)
+- **Many-to-Many**: Certificates ↔ Tools (via `certificate_tool`)
+
+## Setup Guide
+
+### Step 1: Create a Supabase Project
+
+1. Go to [supabase.com](https://supabase.com)
+2. Sign up or log in
+3. Click **New Project**
+4. Fill in:
+   - Project name
+   - Database password (save this!)
+   - Region (choose closest to your users)
+
+### Step 2: Create Tables
+
+1. Navigate to **SQL Editor** in your Supabase dashboard
+2. Copy and execute the SQL statements above for each table
+3. Or use the **Table Editor** to create tables via the UI
+
+### Step 3: Enable Row Level Security (RLS)
+
+For public read access:
+
+```sql
+-- Enable RLS on all tables
+ALTER TABLE about_me ENABLE ROW LEVEL SECURITY;
+ALTER TABLE careers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tools ENABLE ROW LEVEL SECURITY;
+ALTER TABLE certificates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_tool ENABLE ROW LEVEL SECURITY;
+ALTER TABLE certificate_tool ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access
+CREATE POLICY "Allow public read access" ON about_me FOR SELECT USING (true);
+CREATE POLICY "Allow public read access" ON careers FOR SELECT USING (true);
+CREATE POLICY "Allow public read access" ON projects FOR SELECT USING (true);
+CREATE POLICY "Allow public read access" ON tools FOR SELECT USING (true);
+CREATE POLICY "Allow public read access" ON certificates FOR SELECT USING (true);
+CREATE POLICY "Allow public read access" ON project_tool FOR SELECT USING (true);
+CREATE POLICY "Allow public read access" ON certificate_tool FOR SELECT USING (true);
+```
+
+### Step 4: Get API Credentials
+
+1. Go to **Project Settings** → **API**
+2. Copy:
+   - **Project URL** (your `SUPABASE_URL`)
+   - **anon/public key** (your `SUPABASE_KEY`)
+
+### Step 5: Add Sample Data
+
+Add at least one record to `about_me`:
+
+```sql
+INSERT INTO about_me (name, bio, profile_image) VALUES (
+  'Your Name',
+  'I am a **software developer** passionate about web technologies.\n\nI build **modern applications** using cutting-edge tools.',
+  'https://your-image-url.com/profile.jpg'
+);
+```
+
+## Supabase Client Setup
+
+The portfolio uses a Supabase client configured in `src/db/supabase.js`:
+
+```javascript
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+```
+
+## Next Steps
+
+- Configure your [environment variables](/configuration/environment)
+- Add your content to the Supabase tables
+- Test queries in the Supabase dashboard before deployment
+
+<Note>
+  The portfolio uses the `anon` key which is safe to expose publicly. It only allows read operations with RLS enabled.
+</Note>

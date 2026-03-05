@@ -1,80 +1,248 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get your Astro Portfolio up and running in minutes with this step-by-step guide
 ---
 
-## Get started in three steps
+## Quick Start Guide
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This guide will walk you through setting up your Astro Portfolio from scratch. You'll have a fully functional portfolio running locally in less than 10 minutes.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Before you begin, make sure you have Node.js 18.x or higher installed on your system.
+</Note>
+
+## Installation Steps
+
+<Steps>
+  <Step title="Clone the Repository">
+    First, clone the Astro Portfolio repository to your local machine:
+
+    ```bash
+    git clone https://github.com/yourusername/astro-portafolio.git
+    cd astro-portafolio
+    ```
+
+    <Note>
+      Replace `yourusername` with the actual repository owner or fork the project to your own GitHub account.
+    </Note>
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install the project dependencies using your preferred package manager:
+
+    <CodeGroup>
+      ```bash pnpm
+      pnpm install
+      ```
+
+      ```bash npm
+      npm install
+      ```
+
+      ```bash yarn
+      yarn install
+      ```
+    </CodeGroup>
+
+    <Warning>
+      The project was originally built with pnpm. If you encounter issues with other package managers, try using pnpm.
+    </Warning>
+  </Step>
+
+  <Step title="Set Up Environment Variables">
+    Create a `.env` file in the root of your project and add your Supabase credentials:
+
+    ```bash
+    SUPABASE_URL=your_supabase_project_url
+    SUPABASE_KEY=your_supabase_anon_key
+    ```
+
+    You can find these values in your Supabase project settings under **API** → **Project URL** and **Project API keys**.
+
+    <Note>
+      Never commit your `.env` file to version control. It's already included in `.gitignore`.
+    </Note>
+  </Step>
+
+  <Step title="Configure Supabase Database">
+    Set up your Supabase database with the required tables. You'll need to create the following tables:
+
+    ### Required Tables
+
+    1. **about_me** - Your personal information and bio
+    2. **careers** - Your work experience and career history
+    3. **projects** - Your portfolio projects
+    4. **tools** - Technologies and tools you use
+    5. **certificates** - Your professional certifications
+    6. **project_tool** - Many-to-many relationship between projects and tools
+    7. **certificate_tool** - Many-to-many relationship between certificates and tools
+
+    <Card title="Detailed Setup Guide" icon="database" href="/configuration/supabase">
+      See the complete Supabase configuration guide for table schemas and sample data
+    </Card>
+
+    The Supabase client is configured in `src/db/supabase.js`:
+
+    ```javascript
+    import { createClient } from "@supabase/supabase-js";
+
+    const supabaseUrl = import.meta.env.SUPABASE_URL;
+    const supabaseKey = import.meta.env.SUPABASE_KEY;
+
+    export const supabase = createClient(supabaseUrl, supabaseKey);
+    ```
+  </Step>
+
+  <Step title="Start the Development Server">
+    Run the development server to see your portfolio in action:
+
+    <CodeGroup>
+      ```bash pnpm
+      pnpm dev
+      ```
+
+      ```bash npm
+      npm run dev
+      ```
+
+      ```bash yarn
+      yarn dev
+      ```
+    </CodeGroup>
+
+    The server will start at `http://localhost:4321` (or another port if 4321 is in use).
+
+    ```bash
+    🚀 astro v5.13.5 started in 85ms
+    
+    ┃ Local    http://localhost:4321/
+    ┃ Network  use --host to expose
+    ```
+  </Step>
+
+  <Step title="Verify Installation">
+    Open your browser and navigate to `http://localhost:4321`. You should see:
+
+    - ✅ Animated gradient background
+    - ✅ Fixed navigation header
+    - ✅ About Me section with your profile
+    - ✅ Career timeline
+    - ✅ Projects showcase
+    - ✅ Tools and technologies section
+
+    <Warning>
+      If sections appear empty, verify that:
+      1. Your Supabase credentials are correct
+      2. You've created and populated the required database tables
+      3. The `visible` field is set to `true` for your content
+    </Warning>
+  </Step>
+</Steps>
+
+## Available Scripts
+
+The project includes several npm scripts defined in `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  }
+}
+```
+
+### Script Descriptions
+
+<CardGroup cols={2}>
+  <Card title="dev" icon="code">
+    Starts the development server with hot reload
+  </Card>
+  <Card title="build" icon="hammer">
+    Builds your site for production deployment
+  </Card>
+  <Card title="preview" icon="eye">
+    Preview your production build locally
+  </Card>
+  <Card title="astro" icon="terminal">
+    Run Astro CLI commands directly
+  </Card>
+</CardGroup>
+
+## Project Structure
+
+Here's an overview of the key files and directories:
+
+```
+astro-portafolio/
+├── src/
+│   ├── components/          # Reusable Astro components
+│   │   ├── Header.astro     # Animated navigation header
+│   │   ├── AboutMe.astro    # Hero section
+│   │   ├── Career.astro     # Career timeline
+│   │   ├── Projects.astro   # Projects showcase
+│   │   ├── Tools.astro      # Tools with modal interactions
+│   │   └── icons/           # SVG icon components
+│   ├── layouts/
+│   │   └── Layout.astro     # Main layout with global styles
+│   ├── pages/
+│   │   └── index.astro      # Homepage
+│   ├── db/
+│   │   └── supabase.js      # Supabase client configuration
+│   └── styles/
+│       └── global.css       # Global CSS styles
+├── public/                  # Static assets
+├── astro.config.mjs         # Astro configuration
+└── package.json             # Project dependencies
+```
+
+## Next Steps
+
+Now that you have your portfolio running:
+
+<CardGroup cols={2}>
+  <Card title="Configure Content" icon="database" href="/configuration/supabase">
+    Set up your Supabase tables and add your content
+  </Card>
+  <Card title="Explore Features" icon="stars" href="/features">
+    Learn about all the features and customization options
+  </Card>
+  <Card title="Customize Styles" icon="palette" href="/customization/theming">
+    Personalize colors, fonts, and layout to match your brand
+  </Card>
+  <Card title="Deploy" icon="rocket" href="/deployment/vercel">
+    Deploy your portfolio to Vercel or other platforms
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+### Development Server Won't Start
+
+If you encounter errors when running `pnpm dev`:
+
+1. Clear your node_modules and reinstall:
+   ```bash
+   rm -rf node_modules pnpm-lock.yaml
+   pnpm install
+   ```
+
+2. Check your Node.js version:
+   ```bash
+   node --version  # Should be 18.x or higher
+   ```
+
+### Supabase Connection Issues
+
+If you see database errors:
+
+1. Verify your environment variables are set correctly
+2. Check that your Supabase project is active
+3. Ensure your API key has the correct permissions
+4. Check the browser console for specific error messages
+
+<Note>
+  For more help, check the error messages in your terminal or browser console. They often provide specific guidance on what needs to be fixed.
 </Note>

@@ -1,97 +1,283 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Astro Portfolio Documentation"
+description: "Build beautiful, dynamic portfolio websites with Astro, Tailwind CSS, and Supabase"
+mode: "custom"
 ---
 
-## Setting up
+<div className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 dark:from-indigo-950 dark:via-purple-950 dark:to-pink-950 py-20 lg:py-24">
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(188,82,238,0.3),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(56,178,172,0.25),transparent_50%)] blur-3xl"></div>
+  
+  <div className="relative max-w-6xl mx-auto px-6 lg:px-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+          Build Your Portfolio with Astro
+        </h1>
+        <p className="text-lg sm:text-xl text-gray-200 dark:text-gray-300 max-w-2xl mb-8">
+          A modern, fast, and fully customizable portfolio template with server-side rendering, dynamic content management, and beautiful animations.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a 
+            href="/quickstart"
+            className="inline-flex items-center px-6 py-3 rounded-lg bg-[#BC52EE] hover:bg-[#A342DE] text-white font-medium transition-colors"
+          >
+            Get Started
+          </a>
+          <a 
+            href="/features"
+            className="inline-flex items-center px-6 py-3 rounded-lg border border-white/30 bg-white/10 hover:bg-white/20 text-white font-medium transition-colors"
+          >
+            Explore Features
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4">
+    Quick Start
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Get your portfolio up and running in minutes
+  </p>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+  <Steps>
+    <Step title="Clone the repository">
+      Start by cloning the Astro Portfolio template to your local machine:
+      
+      ```bash
+      git clone https://github.com/Hazielgmz/astro-Portfolio.git
+      cd astro-Portfolio
+      ```
+    </Step>
 
-## Make it yours
+    <Step title="Install dependencies">
+      Install the required dependencies using pnpm (or npm/yarn):
+      
+      <CodeGroup>
+      ```bash pnpm
+      pnpm install
+      ```
+      
+      ```bash npm
+      npm install
+      ```
+      
+      ```bash yarn
+      yarn install
+      ```
+      </CodeGroup>
+    </Step>
 
-Design a docs site that looks great and empowers your users.
+    <Step title="Configure Supabase">
+      Create a `.env` file and add your Supabase credentials:
+      
+      ```bash
+      SUPABASE_URL=your_supabase_url
+      SUPABASE_KEY=your_supabase_key
+      ```
+      
+      <Note>
+        You'll need to set up your Supabase database with the required tables. See the [Supabase Setup](/configuration/supabase) guide for details.
+      </Note>
+    </Step>
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
+    <Step title="Start the development server">
+      Run the development server and view your portfolio:
+      
+      ```bash
+      pnpm dev
+      ```
+      
+      Open [http://localhost:4321](http://localhost:4321) in your browser to see your portfolio.
+    </Step>
+  </Steps>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4">
+    Explore the Components
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Learn about each component and how to customize them
+  </p>
+
+  <CardGroup cols={2}>
     <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+      title="Layout & Header"
+      icon="layout"
+      href="/components/layout"
+    >
+      Responsive layout with animated scroll-based navigation
+    </Card>
+    <Card
+      title="About Me Section"
+      icon="user"
+      href="/components/about-me"
+    >
+      Profile display with bio and dynamic content from Supabase
+    </Card>
+    <Card
+      title="Career Timeline"
+      icon="briefcase"
+      href="/components/career"
+    >
+      Display your professional experience in a clean timeline
+    </Card>
+    <Card
+      title="Project Showcase"
+      icon="code"
+      href="/components/projects"
+    >
+      Beautiful project cards with tool badges and preview links
+    </Card>
+    <Card
+      title="Tools Grid"
+      icon="wrench"
+      href="/components/tools"
+    >
+      Interactive tool display with modals for certifications
+    </Card>
+    <Card
+      title="Footer"
+      icon="bars"
+      href="/components/footer"
+    >
+      Customizable footer component
+    </Card>
+  </CardGroup>
+</div>
 
-## Create beautiful pages
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4">
+    Key Features
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Everything you need to create a stunning portfolio
+  </p>
 
-Everything you need to create world-class documentation.
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="p-6 rounded-2xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27]">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#BC52EE]/10 dark:bg-[#BC52EE]/20 flex items-center justify-center">
+          <svg className="w-6 h-6 text-[#BC52EE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Server-Side Rendering</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Built with Astro SSR for optimal performance and SEO</p>
+        </div>
+      </div>
+    </div>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+    <div className="p-6 rounded-2xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27]">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#38B2AC]/10 dark:bg-[#38B2AC]/20 flex items-center justify-center">
+          <svg className="w-6 h-6 text-[#38B2AC]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Tailwind CSS Styling</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Fully responsive design with modern utility-first CSS</p>
+        </div>
+      </div>
+    </div>
 
-## Need inspiration?
+    <div className="p-6 rounded-2xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27]">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#3ECF8E]/10 dark:bg-[#3ECF8E]/20 flex items-center justify-center">
+          <svg className="w-6 h-6 text-[#3ECF8E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Supabase Integration</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Dynamic content management for projects, tools, and career</p>
+        </div>
+      </div>
+    </div>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+    <div className="p-6 rounded-2xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27]">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#BC52EE]/10 dark:bg-[#BC52EE]/20 flex items-center justify-center">
+          <svg className="w-6 h-6 text-[#BC52EE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Interactive Components</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Alpine.js powered modals and smooth animations</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4">
+    Configuration & Deployment
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Set up your environment and deploy to production
+  </p>
+
+  <CardGroup cols={2}>
+    <Card
+      title="Supabase Setup"
+      icon="database"
+      href="/configuration/supabase"
+    >
+      Configure your Supabase database tables and relationships
+    </Card>
+    <Card
+      title="Environment Variables"
+      icon="key"
+      href="/configuration/environment"
+    >
+      Set up your environment configuration
+    </Card>
+    <Card
+      title="Deploy to Vercel"
+      icon="rocket"
+      href="/deployment/vercel"
+    >
+      Deploy your portfolio to Vercel with one click
+    </Card>
+    <Card
+      title="Build Configuration"
+      icon="gear"
+      href="/deployment/build"
+    >
+      Optimize your build settings for production
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="rounded-2xl border border-gray-200 dark:border-[#27272a] bg-gradient-to-br from-[#BC52EE]/5 to-[#38B2AC]/5 dark:from-[#BC52EE]/10 dark:to-[#38B2AC]/10 p-8 md:p-12">
+    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4">
+      Ready to Build Your Portfolio?
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-6 max-w-2xl">
+      Follow our quickstart guide to get up and running in minutes, or explore the components to understand how everything works.
+    </p>
+    <div className="flex flex-wrap gap-4">
+      <a 
+        href="/quickstart"
+        className="inline-flex items-center px-6 py-3 rounded-lg bg-[#BC52EE] hover:bg-[#A342DE] text-white font-medium transition-colors"
+      >
+        Start Building
+      </a>
+      <a 
+        href="https://github.com/Hazielgmz/astro-Portfolio"
+        className="inline-flex items-center px-6 py-3 rounded-lg border border-gray-300 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:bg-gray-50 dark:hover:bg-[#242838] text-gray-900 dark:text-white font-medium transition-colors"
+      >
+        View on GitHub
+      </a>
+    </div>
+  </div>
+</div>

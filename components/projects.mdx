@@ -1,0 +1,426 @@
+---
+title: Projects Component
+description: Portfolio projects showcase with tools/technologies integration from Supabase
+---
+
+## Overview
+
+The `Projects.astro` component displays a grid of portfolio projects with associated technologies. It fetches data from multiple Supabase tables (projects, tools, and project_tool junction table) to show rich project information including images, descriptions, and technology tags.
+
+## Location
+
+`src/components/Projects.astro`
+
+## Supabase Integration
+
+This component uses a complex multi-table query:
+
+### 1. Fetch Projects
+
+```javascript
+const { data: projects, error: projectsError } = await supabase
+  .from("projects")
+  .select("*")
+  .eq('visible', true)
+  .order('created_at', { ascending: false });
+```
+
+### 2. Fetch Project-Tool Relations
+
+```javascript
+const { data: projectTools, error: relationError } = projects && projects.length > 0
+  ? await supabase
+      .from("project_tool")
+      .select("project_id, tool_id")
+      .in('project_id', projects.map(p => p.id))
+  : { data: [], error: null };
+```
+
+### 3. Fetch All Tools
+
+```javascript
+const { data: tools, error: toolsError } = await supabase
+  .from("tools")
+  .select("*")
+  .eq('visible', true);
+```
+
+## Database Schema
+
+### projects Table
+
+<ParamField path="id" type="number" required>
+  Primary key
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Project name
+</ParamField>
+
+<ParamField path="description" type="text" required>
+  Project description
+</ParamField>
+
+<ParamField path="image" type="string">
+  Project screenshot/thumbnail URL
+</ParamField>
+
+<ParamField path="codeLink" type="string">
+  GitHub repository URL
+</ParamField>
+
+<ParamField path="PreviewLink" type="string">
+  Live demo URL
+</ParamField>
+
+<ParamField path="visible" type="boolean" default={true}>
+  Whether to display this project
+</ParamField>
+
+<ParamField path="created_at" type="timestamp">
+  Record creation timestamp
+</ParamField>
+
+### tools Table
+
+<ParamField path="id" type="number" required>
+  Primary key
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  Tool/technology name
+</ParamField>
+
+<ParamField path="type" type="string">
+  Category: frontend, backend, database, framework
+</ParamField>
+
+<ParamField path="icon" type="string">
+  Tool icon URL
+</ParamField>
+
+<ParamField path="visible" type="boolean" default={true}>
+  Whether to display this tool
+</ParamField>
+
+### project_tool Table (Junction)
+
+<ParamField path="project_id" type="number" required>
+  Foreign key to projects.id
+</ParamField>
+
+<ParamField path="tool_id" type="number" required>
+  Foreign key to tools.id
+</ParamField>
+
+## Code Structure
+
+### Helper Function: Get Project Tools
+
+```javascript
+function getProjectTools(projectId: number) {
+  if (!projectTools || !tools) return [];
+  
+  const relations = projectTools.filter(pt => pt.project_id === projectId);
+  
+  return relations.map(relation => {
+    const tool = tools.find(t => t.id === relation.tool_id);
+    if (tool) {
+      return {
+        id: tool.id,
+        name: tool.name,
+        type: tool.type || 'default',
+        icon: tool.icon
+      };
+    }
+    return null;
+  }).filter(Boolean);
+}
+```
+
+### Helper Function: Tool Badge Colors
+
+```javascript
+function getToolClass(toolType: string) {
+  switch(toolType) {
+    case 'frontend':
+      return 'bg-blue-600 text-white';
+    case 'backend':
+      return 'bg-green-600 text-white';
+    case 'database':
+      return 'bg-yellow-600 text-black';
+    case 'framework':
+      return 'bg-purple-600 text-white';
+    default:
+      return 'bg-gray-600 text-white';
+  }
+}
+```
+
+### Project Card Structure
+
+```astro
+<article class="flex flex-col space-x-0 space-y-8 group md:flex-row md:space-x-8 md:space-y-0">
+  <!-- Project Image -->
+  <div class="w-full md:w-1/2">
+    <div class="relative flex flex-col items-center col-span-6 row-span-5 gap-8 transition duration-500 ease-in-out transform shadow-xl overflow-clip rounded-xl sm:rounded-xl md:group-hover:-translate-y-1 md:group-hover:shadow-2xl lg:border lg:border-gray-800 lg:hover:border-gray-700 lg:hover:bg-gray-800/50">
+      <img 
+        alt={project.title} 
+        class="object-cover object-top w-full h-56 transition duration-500 sm:h-full md:scale-110 md:group-hover:scale-105" 
+        loading="lazy" 
+        src={project.image || "/placeholder-project.webp"} 
+      />
+    </div>
+  </div>
+
+  <!-- Project Details -->
+  <div class="w-full md:w-1/2 md:max-w-lg">
+    <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
+      {project.title}
+    </h3>
+    
+    <!-- Tool badges -->
+    <div class="flex flex-wrap mt-2">
+      <ul class="flex flex-row flex-wrap mb-2 gap-x-2 gap-y-2">
+        {projectToolsList.map((tool) => (
+          <li>
+            <span class={`flex gap-x-2 rounded-full text-xs ${getToolClass(tool.type)} py-1 px-2 items-center`}>
+              {tool.icon && (
+                <img 
+                  src={tool.icon} 
+                  alt={`${tool.name} icon`}
+                  class="w-4 h-4"
+                />
+              )}
+              {tool.name}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <div class="mt-2 text-gray-600 dark:text-gray-300">{project.description}</div>
+      
+      <!-- Action buttons -->
+      <footer class="flex items-end justify-start mt-4 gap-x-4">
+        {project.codeLink && (
+          <LinkButton href={project.codeLink}>
+            <GitHub class="size-6" />
+            Code
+          </LinkButton>
+        )}
+        {project.PreviewLink && (
+          <LinkButton href={project.PreviewLink}>
+            <Link class="size-4" />
+            Preview
+          </LinkButton>
+        )}
+      </footer>
+    </div>
+  </div>
+</article>
+```
+
+## Visual Features
+
+### Image Hover Effects
+
+- **Scale effect**: Image scales from 110% to 105% on hover
+- **Card lift**: Card translates up slightly (`-translate-y-1`)
+- **Shadow**: Shadow intensifies on hover
+- **Border**: Border color changes on hover
+
+### Tool Badge Colors
+
+- **Frontend**: Blue (`bg-blue-600`)
+- **Backend**: Green (`bg-green-600`)
+- **Database**: Yellow (`bg-yellow-600 text-black`)
+- **Framework**: Purple (`bg-purple-600`)
+- **Default**: Gray (`bg-gray-600`)
+
+## Usage Example
+
+```astro
+---
+import Layout from '../layouts/Layout.astro';
+import SectionContainer from '../components/SectionContainer.astro';
+import TitleSection from '../components/TitleSection.astro';
+import Projects from '../components/Projects.astro';
+---
+
+<Layout title="My Projects">
+  <SectionContainer id="proyectos">
+    <TitleSection>
+      <svg slot="icon"><!-- Code icon --></svg>
+      Featured Projects
+    </TitleSection>
+    <Projects />
+  </SectionContainer>
+</Layout>
+```
+
+## Database Setup
+
+### Create Tables
+
+```sql
+-- Projects table
+CREATE TABLE projects (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  image TEXT,
+  codeLink TEXT,
+  PreviewLink TEXT,
+  visible BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tools table
+CREATE TABLE tools (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  type VARCHAR(50),
+  icon TEXT,
+  visible BOOLEAN DEFAULT true
+);
+
+-- Junction table
+CREATE TABLE project_tool (
+  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+  tool_id INTEGER REFERENCES tools(id) ON DELETE CASCADE,
+  PRIMARY KEY (project_id, tool_id)
+);
+```
+
+### Insert Sample Data
+
+```sql
+-- Insert tools
+INSERT INTO tools (name, type, icon) VALUES
+('React', 'frontend', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg'),
+('Node.js', 'backend', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg'),
+('PostgreSQL', 'database', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg');
+
+-- Insert project
+INSERT INTO projects (title, description, image, codeLink, PreviewLink) VALUES
+('E-commerce Platform', 'A full-stack e-commerce solution with cart and payment integration', 
+ 'https://example.com/project.png', 
+ 'https://github.com/username/project', 
+ 'https://project-demo.com');
+
+-- Link tools to project
+INSERT INTO project_tool (project_id, tool_id) VALUES
+(1, 1), -- React
+(1, 2), -- Node.js
+(1, 3); -- PostgreSQL
+```
+
+## Customization Tips
+
+### Change Card Layout Ratio
+
+```astro
+<!-- Make image smaller -->
+<div class="w-full md:w-1/3"> <!-- Changed from md:w-1/2 -->
+<div class="w-full md:w-2/3 md:max-w-lg"> <!-- Changed from md:w-1/2 -->
+```
+
+### Modify Tool Badge Styles
+
+```javascript
+function getToolClass(toolType: string) {
+  switch(toolType) {
+    case 'frontend':
+      return 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white';
+    // ...
+  }
+}
+```
+
+### Add Project Categories
+
+Extend the schema:
+
+```sql
+ALTER TABLE projects ADD COLUMN category VARCHAR(50);
+```
+
+Filter by category:
+
+```javascript
+const { data: projects } = await supabase
+  .from("projects")
+  .select("*")
+  .eq('visible', true)
+  .eq('category', 'web') // Filter by category
+  .order('created_at', { ascending: false });
+```
+
+### Change Hover Animation
+
+```astro
+<div class="... md:group-hover:scale-105 md:group-hover:rotate-2"> <!-- Add rotation -->
+```
+
+### Use Different Placeholder Image
+
+```astro
+src={project.image || "/custom-placeholder.webp"}
+```
+
+## Responsive Behavior
+
+- **Mobile**: Vertical stack (image above, details below)
+- **Desktop**: Horizontal layout (50/50 split)
+- **Image**: Full width on mobile, half width on desktop
+- **Hover effects**: Only active on medium screens and up
+
+## Error Handling
+
+### Error State
+
+```astro
+{error ? (
+  <p class="text-center text-red-500 dark:text-red-400 mt-8">
+    Error al cargar proyectos: {error.message}
+  </p>
+) : (
+  <!-- Projects grid -->
+)}
+```
+
+### Empty State
+
+```astro
+<p class="text-center text-gray-600 dark:text-gray-400">
+  No hay proyectos disponibles.
+</p>
+```
+
+## Dependencies
+
+- `LinkButton.astro`: Styled button component
+- `icons/GitHub.astro`: GitHub icon
+- `icons/Link.astro`: External link icon
+
+## Performance Considerations
+
+- Images use `loading="lazy"` for better performance
+- Multiple Supabase queries executed in sequence (consider parallelizing if needed)
+- Tool filtering happens client-side after data fetch
+
+## Accessibility Features
+
+- Semantic `<article>` elements
+- Alt text for images
+- Proper heading hierarchy
+- High contrast badge colors
+- Descriptive button text with icons
+
+## Dark Mode Support
+
+Full dark mode with:
+- Text color adjustments
+- Border color changes
+- Background overlay effects
+- Tool badge visibility maintained

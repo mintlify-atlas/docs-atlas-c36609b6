@@ -1,0 +1,472 @@
+---
+title: Features
+description: Comprehensive overview of all features in Astro Portfolio including SSR, dynamic content, animations, and interactive components
+---
+
+## Core Features
+
+Astro Portfolio is packed with modern web development features that make it performant, maintainable, and visually appealing.
+
+## Server-Side Rendering (SSR)
+
+The portfolio is configured with Astro's SSR mode and the Vercel adapter for optimal performance and dynamic content loading.
+
+### Configuration
+
+SSR is enabled in `astro.config.mjs`:
+
+```javascript
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+import tailwindcss from '@tailwindcss/vite';
+
+export default defineConfig({
+  output: 'server', // Enables SSR in Astro
+  adapter: vercel({}),
+  vite: {
+    plugins: [tailwindcss()]
+  }
+});
+```
+
+### Benefits
+
+<CardGroup cols={2}>
+  <Card title="Dynamic Data" icon="database">
+    Content is fetched from Supabase on each request, ensuring always up-to-date information
+  </Card>
+  <Card title="SEO Optimization" icon="search">
+    Server-rendered HTML is fully crawlable by search engines
+  </Card>
+  <Card title="Fast Initial Load" icon="bolt">
+    Users see content immediately without waiting for client-side JavaScript
+  </Card>
+  <Card title="Secure API Keys" icon="shield">
+    Environment variables stay on the server, never exposed to clients
+  </Card>
+</CardGroup>
+
+## Responsive Design
+
+The portfolio is fully responsive and adapts beautifully to all screen sizes, from mobile phones to large desktop displays.
+
+### Mobile-First Layout
+
+All components use Tailwind's responsive utilities:
+
+```astro
+<article class="flex flex-col items-center gap-8 md:flex-row">
+  <div class="order-2 md:order-1">
+    <!-- Content -->
+  </div>
+  <img class="order-1 md:order-2 w-64" />
+</article>
+```
+
+### Breakpoint System
+
+- **Mobile**: Default styles (< 768px)
+- **Tablet**: `md:` prefix (≥ 768px)
+- **Desktop**: `lg:` prefix (≥ 1024px)
+
+## Dynamic Content Management
+
+All portfolio content is managed through Supabase, making updates easy without touching code.
+
+### Supabase Integration
+
+The Supabase client is initialized once and reused across components:
+
+```javascript
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+```
+
+### Content Types
+
+<Tabs>
+  <Tab title="About Me">
+    Dynamic personal information loaded from the `about_me` table:
+
+    ```astro
+    ---
+    import { supabase } from "../db/supabase"
+
+    const { data: aboutMe, error } = await supabase
+      .from("about_me")
+      .select("*")
+      .single()
+    ---
+
+    <h1>{aboutMe.name}</h1>
+    <img src={aboutMe.profile_image} alt="Profile" />
+    ```
+  </Tab>
+
+  <Tab title="Projects">
+    Projects with filtering and relationships to tools:
+
+    ```astro
+    const { data: projects } = await supabase
+      .from("projects")
+      .select("*")
+      .eq('visible', true)
+      .order('created_at', { ascending: false });
+    ```
+
+    Each project includes:
+    - Title and description
+    - Preview image
+    - GitHub repository link
+    - Live demo link
+    - Associated technologies
+  </Tab>
+
+  <Tab title="Career">
+    Professional experience displayed chronologically:
+
+    ```astro
+    const { data: careers } = await supabase
+      .from("careers")
+      .select("*")
+      .order('period', { ascending: false })
+      .eq('visible', true);
+    ```
+  </Tab>
+
+  <Tab title="Tools">
+    Tools categorized by type (Frontend, Backend, Database, Framework):
+
+    ```astro
+    async function fetchToolsByType(type: string) {
+      const { data } = await supabase
+        .from("tools")
+        .select("*")
+        .eq("type", type)
+        .eq("visible", true)
+        .order("name");
+      return data || [];
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Interactive Components
+
+The portfolio uses Alpine.js for lightweight, reactive interactivity without heavy JavaScript frameworks.
+
+### Alpine.js Integration
+
+Alpine is loaded from CDN in the main layout:
+
+```html
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+```
+
+### Tool Modal System
+
+Click on any tool to see related projects and certifications:
+
+```astro
+<div x-data="{
+  selectedTool: null,
+  modalOpen: false,
+  openModal(tool) {
+    this.selectedTool = tool;
+    this.modalOpen = true;
+  },
+  closeModal() {
+    this.modalOpen = false;
+    setTimeout(() => this.selectedTool = null, 300);
+  }
+}">
+  <!-- Tools display -->
+  <div 
+    x-on:click="openModal(tool)"
+    class="cursor-pointer transition hover:scale-110"
+  >
+    <!-- Tool card -->
+  </div>
+
+  <!-- Modal with transitions -->
+  <div 
+    x-show="modalOpen" 
+    x-transition:enter="transition ease-out duration-300"
+  >
+    <!-- Modal content -->
+  </div>
+</div>
+```
+
+### Features of the Modal
+
+- **Smooth transitions** - Fade and scale animations
+- **Click outside to close** - Using Alpine's `@click.away`
+- **Related content** - Shows certificates and projects using the selected tool
+- **Visual indicator** - Yellow pulse dot on tools with related content
+
+## Scroll Animations
+
+The portfolio includes several scroll-based animations for a dynamic user experience.
+
+### Animated Navigation Header
+
+The header transforms as you scroll using CSS animation-timeline:
+
+```css
+#header-nav {
+  animation: blur linear both 0.5s;
+  animation-timeline: scroll();
+  animation-range: 0 500px;
+}
+
+@keyframes blur {
+  from {
+    background-color: transparent;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    backdrop-filter: blur(20px);
+    background-color: rgba(229, 229, 229, 0.8);
+    border-radius: 9999px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+}
+```
+
+### Intersection Observer Navigation
+
+Active navigation items are highlighted based on scroll position:
+
+```javascript
+const callback = (entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      navItems.forEach((item) => {
+        if (item.getAttribute("aria-label") == entry.target.id) {
+          item.classList.add("text-blue-500")
+        } else {
+          item.classList.remove("text-blue-500")
+        }
+      })
+    }
+  })
+}
+
+const observer = new IntersectionObserver(callback, {
+  threshold: 0.3
+});
+```
+
+## Project Showcase
+
+The projects section displays your work with rich media and detailed information.
+
+### Project Cards
+
+Each project features:
+
+```astro
+<article class="flex flex-col md:flex-row group">
+  <div class="w-full md:w-1/2">
+    <img 
+      src={project.image}
+      class="transition duration-500 md:group-hover:scale-105"
+    />
+  </div>
+  
+  <div class="w-full md:w-1/2">
+    <h3>{project.title}</h3>
+    <ul class="flex flex-wrap gap-2">
+      {projectTools.map((tool) => (
+        <li class="rounded-full px-2 py-1">
+          <img src={tool.icon} class="w-4 h-4" />
+          {tool.name}
+        </li>
+      ))}
+    </ul>
+    <p>{project.description}</p>
+    
+    <footer class="flex gap-4">
+      <LinkButton href={project.codeLink}>
+        <GitHub class="size-6" /> Code
+      </LinkButton>
+      <LinkButton href={project.PreviewLink}>
+        <Link class="size-4" /> Preview
+      </LinkButton>
+    </footer>
+  </div>
+</article>
+```
+
+### Technology Tags
+
+Tools are color-coded by category:
+
+```javascript
+function getToolClass(toolType: string) {
+  switch(toolType) {
+    case 'frontend':
+      return 'bg-blue-600 text-white';
+    case 'backend':
+      return 'bg-green-600 text-white';
+    case 'database':
+      return 'bg-yellow-600 text-black';
+    case 'framework':
+      return 'bg-purple-600 text-white';
+    default:
+      return 'bg-gray-600 text-white';
+  }
+}
+```
+
+## Career Timeline
+
+Display your professional journey in a clean, chronological format.
+
+```astro
+<ol class="relative mt-16">
+  {careers.map((career) => (
+    <li>
+      <ExperienceItem {...career} />
+    </li>
+  ))}
+</ol>
+```
+
+Career items are automatically sorted by period in descending order, showing your most recent experience first.
+
+## Tools & Certifications Display
+
+The tools section organizes your technical skills by category with interactive elements.
+
+### Categorized Display
+
+Tools are grouped into four categories:
+
+- **Frontend** - React, Vue, HTML, CSS, etc.
+- **Backend** - Node.js, Python, Java, etc.
+- **Database** - PostgreSQL, MongoDB, Redis, etc.
+- **Frameworks** - Next.js, Astro, Express, etc.
+
+### Horizontal Scroll
+
+Each category uses horizontal scrolling for better mobile experience:
+
+```astro
+<div class="flex overflow-x-auto snap-x scroll-smooth gap-8">
+  {tools.map(tool => (
+    <div class="flex-none snap-start min-w-[65px]">
+      <img src={tool.icon} class="w-12 h-12" />
+      <h3>{tool.name}</h3>
+    </div>
+  ))}
+</div>
+```
+
+### Custom Scrollbar Styling
+
+```css
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 8px;
+}
+```
+
+## Dark Mode Support
+
+The entire portfolio supports dark mode using Tailwind's dark mode utilities.
+
+### Color Scheme
+
+```astro
+<div class="bg-white dark:bg-gray-800">
+  <p class="text-gray-900 dark:text-white">
+    Content
+  </p>
+</div>
+```
+
+### Animated Background
+
+The gradient background adapts to dark mode:
+
+```astro
+<div class="
+  bg-gradient-to-br 
+  from-indigo-100 via-slate-100 to-blue-50
+  dark:from-indigo-900 dark:via-slate-900 dark:to-blue-900
+"></div>
+```
+
+## Typography & Fonts
+
+The portfolio uses the Onest Variable font for a modern, clean appearance:
+
+```astro
+import "@fontsource-variable/onest"
+```
+
+```css
+html {
+  font-family: "Onest Variable", sans-serif;
+  scroll-behavior: smooth;
+}
+```
+
+## Performance Optimizations
+
+<CardGroup cols={2}>
+  <Card title="Lazy Loading" icon="image">
+    Images use native lazy loading: `loading="lazy"`
+  </Card>
+  <Card title="Optimized Queries" icon="database">
+    Only visible content is fetched: `.eq('visible', true)`
+  </Card>
+  <Card title="Minimal JavaScript" icon="zap">
+    Alpine.js is only 15kb gzipped
+  </Card>
+  <Card title="CSS Purging" icon="broom">
+    Tailwind removes unused CSS in production
+  </Card>
+</CardGroup>
+
+## Accessibility Features
+
+- **Semantic HTML** - Proper use of `<header>`, `<main>`, `<article>`, `<section>`
+- **ARIA labels** - Screen reader support for navigation and icons
+- **Keyboard navigation** - All interactive elements are keyboard accessible
+- **Reduced motion** - Respects `prefers-reduced-motion` preference:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Customize Your Portfolio" icon="palette" href="/customization/content">
+    Learn how to personalize colors, fonts, and layouts
+  </Card>
+  <Card title="Supabase Setup" icon="database" href="/configuration/supabase">
+    Complete guide to setting up your database schema
+  </Card>
+  <Card title="Deploy to Production" icon="rocket" href="/deployment/vercel">
+    Deploy your portfolio to Vercel or other platforms
+  </Card>
+  <Card title="Add Custom Components" icon="code" href="/components/layout">
+    Extend the portfolio with your own components
+  </Card>
+</CardGroup>

@@ -1,0 +1,244 @@
+---
+title: Build Process
+description: Understanding the build process and configuration for your Astro portfolio
+---
+
+Learn how the build process works and how to optimize your Astro portfolio for production.
+
+## Build Overview
+
+The build process transforms your Astro project into production-ready assets optimized for deployment.
+
+### Build Command
+
+```bash
+npm run build
+```
+
+This executes the `astro build` command defined in `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  }
+}
+```
+
+## SSR Configuration
+
+Your portfolio is configured for server-side rendering (SSR) in `astro.config.mjs`:
+
+```js
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+import tailwindcss from '@tailwindcss/vite';
+
+export default defineConfig({
+  output: 'server',  // Enables SSR
+  adapter: vercel(),
+  vite: {
+    plugins: [tailwindcss()]
+  }
+});
+```
+
+### Why SSR?
+
+- **Dynamic Content**: Render pages on-demand with real-time data
+- **API Routes**: Create serverless API endpoints
+- **Personalization**: Serve user-specific content
+- **SEO**: Server-rendered HTML for search engines
+
+## Vercel Serverless Adapter
+
+The `@astrojs/vercel` adapter is configured for serverless deployment:
+
+### Features
+
+- **Serverless Functions**: Each page becomes a serverless function
+- **Edge Network**: Distributed globally for low latency
+- **Automatic Scaling**: Handles traffic spikes automatically
+- **Zero Configuration**: Works out of the box with Vercel
+
+### Output Directory
+
+The Vercel adapter outputs to `.vercel/output/` directory:
+
+```
+.vercel/output/
+├── config.json          # Vercel configuration
+├── functions/           # Serverless functions
+│   └── render.func/     # SSR rendering function
+└── static/              # Static assets
+    ├── _astro/          # JS, CSS bundles
+    └── images/          # Optimized images
+```
+
+<Note>
+The `.vercel` directory is automatically generated and should be added to `.gitignore`.
+</Note>
+
+## Build Process Steps
+
+When you run `astro build`, the following happens:
+
+1. **Type Checking**: TypeScript files are validated
+2. **Component Processing**: Astro components are compiled
+3. **Style Processing**: Tailwind CSS is processed via Vite
+4. **Asset Optimization**: Images and static files are optimized
+5. **Bundle Generation**: JavaScript and CSS are bundled and minified
+6. **Adapter Output**: Vercel adapter creates serverless functions
+
+## Build Optimization Tips
+
+### 1. Optimize Dependencies
+
+Keep your `package.json` lean:
+
+```bash
+# Remove unused dependencies
+npm prune
+
+# Check for outdated packages
+npm outdated
+```
+
+### 2. Image Optimization
+
+Use Astro's built-in image optimization:
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/photo.jpg';
+---
+
+<Image src={myImage} alt="Optimized" />
+```
+
+### 3. Code Splitting
+
+Astro automatically code-splits by page. For components, use dynamic imports:
+
+```astro
+---
+const HeavyComponent = await import('../components/Heavy.astro');
+---
+```
+
+### 4. CSS Optimization
+
+Tailwind CSS is configured via Vite plugin and automatically purges unused styles:
+
+```js
+vite: {
+  plugins: [tailwindcss()]
+}
+```
+
+### 5. Environment Variables
+
+Use environment variables for configuration:
+
+```js
+// Access in .astro files
+const apiUrl = import.meta.env.PUBLIC_API_URL;
+
+// Access in server-side code
+const secretKey = import.meta.env.SECRET_KEY;
+```
+
+<Warning>
+Only variables prefixed with `PUBLIC_` are exposed to the client. Keep secrets server-side only.
+</Warning>
+
+## Preview Build Locally
+
+Test your production build locally before deploying:
+
+```bash
+# Build for production
+npm run build
+
+# Preview the build
+npm run preview
+```
+
+The preview server runs on `http://localhost:4321` by default.
+
+## Troubleshooting Common Issues
+
+### Build Fails with Module Errors
+
+**Problem**: Missing or incompatible dependencies
+
+**Solution**:
+```bash
+# Clear node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### TypeScript Errors
+
+**Problem**: Type checking fails during build
+
+**Solution**:
+```bash
+# Run type check separately
+npx astro check
+
+# Fix errors or add type ignores where necessary
+```
+
+### Tailwind Styles Missing
+
+**Problem**: Styles not applied in production
+
+**Solution**:
+- Ensure `@tailwindcss/vite` plugin is configured
+- Check that classes are used in your components (not dynamically generated)
+- Verify Tailwind directives are in your CSS
+
+### Large Bundle Size
+
+**Problem**: Slow page loads due to large JavaScript bundles
+
+**Solution**:
+- Use `astro:assets` for image optimization
+- Minimize client-side JavaScript
+- Enable tree-shaking by avoiding side effects
+- Consider lazy loading heavy components
+
+### Environment Variables Not Working
+
+**Problem**: Variables undefined in production
+
+**Solution**:
+- Add variables to Vercel dashboard
+- Use correct prefix (`PUBLIC_` for client-side)
+- Redeploy after adding new variables
+
+## Build Performance
+
+### Typical Build Times
+
+- **Small portfolio** (5-10 pages): 10-30 seconds
+- **Medium portfolio** (10-20 pages): 30-60 seconds
+- **Large portfolio** (20+ pages): 1-2 minutes
+
+### Improving Build Speed
+
+1. **Reduce dependencies**: Only install what you need
+2. **Use build caching**: Vercel automatically caches dependencies
+3. **Optimize images**: Pre-optimize large images before adding them
+4. **Parallel builds**: Vercel uses parallel processing automatically
+
+## Next Steps
+
+- [Deploy to Vercel](/deployment/vercel)
+- [Configure environment variables](/configuration/environment)
+- [Optimize performance](https://docs.astro.build/en/guides/performance/)

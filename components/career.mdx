@@ -1,0 +1,361 @@
+---
+title: Career Component
+description: Work experience timeline displaying career history from Supabase
+---
+
+## Overview
+
+The `Career.astro` component displays a professional timeline of work experience. It fetches career data from Supabase and renders each position using the `CareerItem` sub-component. The timeline is sorted by period with the most recent positions first.
+
+## Location
+
+`src/components/Career.astro`
+
+## Supabase Integration
+
+Fetches career entries from the `careers` table:
+
+```javascript
+import { supabase } from "../db/supabase"
+
+const { data: careers, error } = await supabase
+  .from("careers")
+  .select("*")
+  .order('period', { ascending: false }) // Most recent first
+  .eq('visible', true) // Only show visible entries
+```
+
+### Database Schema
+
+The `careers` table should contain:
+
+<ParamField path="id" type="number" required>
+  Primary key
+</ParamField>
+
+<ParamField path="position" type="string" required>
+  Job title or position name
+</ParamField>
+
+<ParamField path="company" type="string" required>
+  Company name
+</ParamField>
+
+<ParamField path="description" type="text" required>
+  Job description and responsibilities
+</ParamField>
+
+<ParamField path="period" type="string" required>
+  Time period (e.g., "2020 - 2023")
+</ParamField>
+
+<ParamField path="contact" type="string">
+  Optional contact email
+</ParamField>
+
+<ParamField path="visible" type="boolean" default={true}>
+  Whether to display this career entry
+</ParamField>
+
+<ParamField path="created_at" type="timestamp">
+  Record creation timestamp
+</ParamField>
+
+<ParamField path="updated_at" type="timestamp">
+  Record update timestamp
+</ParamField>
+
+## Code Structure
+
+### Main Component
+
+```astro
+---
+import ExperienceItem from "./CareerItem.astro"
+import { supabase } from "../db/supabase"
+
+const { data: careers, error } = await supabase
+  .from("careers")
+  .select("*")
+  .order('period', { ascending: false })
+  .eq('visible', true)
+---
+
+{error ? (
+  <p class="text-center text-red-500 dark:text-red-400">
+    Error al cargar experiencia laboral: {error.message}
+  </p>
+) : (
+  <ol class="relative mt-16">
+    {
+      careers && careers.length > 0 ? (
+        careers.map((career) => (
+          <li class="">
+            <ExperienceItem {...career} />
+          </li>
+        ))
+      ) : (
+        <p class="text-center text-gray-600 dark:text-gray-400">
+          No hay experiencia laboral disponible.
+        </p>
+      )
+    }
+  </ol>
+)}
+```
+
+## CareerItem Sub-Component
+
+Each career entry is rendered using `CareerItem.astro`:
+
+### Props Interface
+
+```typescript
+interface Props {
+  id: number
+  position: string
+  company: string
+  description: string
+  contact?: string
+  period: string
+  visible: boolean
+  created_at: string
+  updated_at: string
+}
+```
+
+### CareerItem Structure
+
+```astro
+<div class="relative mx-12 pb-12 grid before:absolute before:left-[-35px] before:block before:h-full before:border-l-2 before:border-black/20 dark:before:border-white/15 before:content-[''] md:grid-cols-5 md:gap-10 md:space-x-4]">
+  
+  <!-- Left column: Position details -->
+  <div class="relative pb-12 md:col-span-2">
+    <div class="sticky top-0">
+      <span class="text-yellow-400 -left-[42px] absolute rounded-full text-5xl">
+        &bull;
+      </span>
+
+      <h3 class="text-xl font-bold text-yellow-400">{position}</h3>
+      <h4 class="font-semibold text-xl text-gray-600 dark:text-white">{company}</h4>
+      <time class="p-0 m-0 text-sm text-gray-600/80 dark:text-white/80">{period}</time>
+    </div>
+  </div>
+  
+  <!-- Right column: Description -->
+  <div class="relative flex flex-col gap-2 pb-4 text-gray-600 dark:text-gray-300 md:col-span-3">
+    {description}
+    {contact && (
+      <div class="mt-2 flex items-center gap-2">
+        <svg><!-- Email icon --></svg>
+        <span class="text-blue-600 dark:text-blue-400 hover:underline">
+          {contact}
+        </span>
+      </div>
+    )}
+  </div>
+</div>
+```
+
+## Visual Features
+
+### Timeline Line
+
+Created using CSS pseudo-element:
+
+```css
+before:absolute 
+before:left-[-35px] 
+before:block 
+before:h-full 
+before:border-l-2 
+before:border-black/20 
+dark:before:border-white/15 
+before:content-['']
+```
+
+### Timeline Bullet Point
+
+Yellow bullet marking each position:
+
+```astro
+<span class="text-yellow-400 -left-[42px] absolute rounded-full text-5xl">
+  &bull;
+</span>
+```
+
+### Sticky Position Headers
+
+Position details stick to the top on scroll:
+
+```astro
+<div class="sticky top-0">
+  <h3>{position}</h3>
+  <h4>{company}</h4>
+  <time>{period}</time>
+</div>
+```
+
+## Usage Example
+
+```astro
+---
+import Layout from '../layouts/Layout.astro';
+import SectionContainer from '../components/SectionContainer.astro';
+import TitleSection from '../components/TitleSection.astro';
+import Career from '../components/Career.astro';
+---
+
+<Layout title="Experience">
+  <SectionContainer id="trayectoria">
+    <TitleSection>
+      <svg slot="icon"><!-- Briefcase icon --></svg>
+      Work Experience
+    </TitleSection>
+    <Career />
+  </SectionContainer>
+</Layout>
+```
+
+## Database Setup
+
+### Create the Table
+
+```sql
+CREATE TABLE careers (
+  id SERIAL PRIMARY KEY,
+  position VARCHAR(255) NOT NULL,
+  company VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  period VARCHAR(100) NOT NULL,
+  contact VARCHAR(255),
+  visible BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Insert Sample Data
+
+```sql
+INSERT INTO careers (position, company, description, period, contact, visible) VALUES 
+(
+  'Senior Full Stack Developer',
+  'Tech Corp',
+  'Led development of cloud-based applications using React and Node.js. Managed a team of 5 developers.',
+  '2021 - Present',
+  'contact@techcorp.com',
+  true
+),
+(
+  'Frontend Developer',
+  'StartupXYZ',
+  'Built responsive web applications using Vue.js and TypeScript.',
+  '2019 - 2021',
+  null,
+  true
+);
+```
+
+## Customization Tips
+
+### Change Timeline Line Color
+
+```astro
+before:border-purple-500/30 
+dark:before:border-purple-400/20
+```
+
+### Modify Bullet Point Style
+
+```astro
+<span class="text-blue-500 -left-[42px] absolute rounded-full text-5xl">
+  ●
+</span>
+```
+
+Or use an icon:
+
+```astro
+<span class="-left-[47px] absolute">
+  <svg class="w-6 h-6 text-yellow-400"><!-- Icon --></svg>
+</span>
+```
+
+### Adjust Grid Layout
+
+```astro
+<div class="... md:grid-cols-3"> <!-- Change from md:grid-cols-5 -->
+  <div class="... md:col-span-1"> <!-- Left column -->
+  <div class="... md:col-span-2"> <!-- Right column -->
+```
+
+### Add More Fields
+
+Extend the database schema and component:
+
+```sql
+ALTER TABLE careers ADD COLUMN technologies TEXT[];
+```
+
+```astro
+<div class="mt-2 flex flex-wrap gap-2">
+  {career.technologies?.map(tech => (
+    <span class="px-2 py-1 bg-blue-500 text-white rounded text-sm">
+      {tech}
+    </span>
+  ))}
+</div>
+```
+
+### Hide Contact Email
+
+Remove the contact section from CareerItem.astro:
+
+```astro
+{/* Remove this block:
+{contact && (
+  <div class="mt-2 flex items-center gap-2">
+    ...
+  </div>
+)}
+*/}
+```
+
+## Responsive Behavior
+
+- **Mobile**: Single column layout with timeline on the left
+- **Desktop**: Two-column grid (2 cols for details, 3 cols for description)
+- **Timeline**: Consistent vertical line across all screen sizes
+
+## Error Handling
+
+### No Data State
+
+```astro
+<p class="text-center text-gray-600 dark:text-gray-400">
+  No hay experiencia laboral disponible.
+</p>
+```
+
+### Error State
+
+```astro
+<p class="text-center text-red-500 dark:text-red-400">
+  Error al cargar experiencia laboral: {error.message}
+</p>
+```
+
+## Accessibility Features
+
+- Semantic `<ol>` for ordered timeline
+- `<time>` element for periods
+- Proper heading hierarchy (h3, h4)
+- High contrast colors
+- Email icon with visible text (no sr-only needed)
+
+## Dark Mode Support
+
+- Timeline line opacity adjusts for dark backgrounds
+- Text colors change to maintain readability
+- Contact link uses blue-400 in dark mode

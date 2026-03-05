@@ -1,0 +1,250 @@
+---
+title: About Me Component
+description: Personal introduction section with profile image and bio loaded from Supabase
+---
+
+## Overview
+
+The `AboutMe.astro` component displays the personal introduction section of the portfolio. It fetches data from Supabase to show the user's name, profile image, and biography. The component features a responsive layout with the profile image and text content side-by-side on larger screens.
+
+## Location
+
+`src/components/AboutMe.astro`
+
+## Supabase Integration
+
+This component fetches data from the `about_me` table:
+
+```javascript
+import { supabase } from "../db/supabase"
+
+const { data: aboutMe, error } = await supabase
+  .from("about_me")
+  .select("*")
+  .single() // Retrieves only one record
+```
+
+### Database Schema
+
+The `about_me` table should contain:
+
+<ParamField path="name" type="string" required>
+  The person's full name displayed as the main heading
+</ParamField>
+
+<ParamField path="bio" type="text" required>
+  Biography text with support for markdown-style bold text using **text**
+</ParamField>
+
+<ParamField path="profile_image" type="string" required>
+  URL to the profile image
+</ParamField>
+
+## Code Structure
+
+### Data Fetching
+
+```astro
+const { data: aboutMe, error } = await supabase
+  .from("about_me")
+  .select("*")
+  .single()
+```
+
+### Error Handling
+
+```astro
+{error ? (
+  <p class="text-center text-red-500 dark:text-red-400 mt-24 pt-6">
+    Error al cargar: {error.message}
+  </p>
+) : (
+  <!-- Component content -->
+)}
+```
+
+### Text Formatting
+
+The bio supports multi-paragraph text with bold formatting:
+
+```astro
+{aboutMe.bio && aboutMe.bio.split('\n').map((paragraph: string) => (
+  <p set:html={paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')} />
+))}
+```
+
+This allows you to use `**bold text**` in your bio, which will be rendered as `<strong>bold text</strong>`.
+
+### Profile Image
+
+```astro
+<img 
+  width="200" 
+  height="200" 
+  src={aboutMe.profile_image} 
+  alt="Foto de perfil" 
+  class="order-1 object-cover w-64 h-full p-1 md:order-2 rotate-3 lg:p-2 lg:w-64 aspect-square rounded-2xl bg-black/20 dark:bg-yellow-500/5 ring-1 ring-black/70 dark:ring-white/20" 
+  style="object-position: 50% 50%"
+/>
+```
+
+## Layout Structure
+
+```astro
+<article class="flex flex-col items-center justify-center gap-8 text-gray-700 dark:text-gray-300 md:flex-row mt-24 pt-6">
+  <!-- Text content (order-2 on mobile, order-2 on desktop) -->
+  <div class="[&>p]:mb-4 [&>p>strong]:text-yellow-500 dark:[&>p>strong]:text-yellow-100 [&>p>strong]:font-normal [&>p>strong]:font-mono [&>p]:text-lg text-pretty order-2 md:order-2">
+    <h1 class="text-4xl font-bold tracking-tight text-gray-800 sm:text-5xl dark:text-white mb-6">
+      {aboutMe.name}
+    </h1>
+    
+    <!-- Bio paragraphs -->
+  </div>
+
+  <!-- Profile image (order-1 on mobile, order-2 on desktop) -->
+  <img src={aboutMe.profile_image} alt="Foto de perfil" class="..." />
+</article>
+```
+
+## Styling Features
+
+### Image Styling
+
+- **Rotation**: `rotate-3` gives a subtle tilt
+- **Ring**: Border ring effect with `ring-1 ring-black/70`
+- **Background**: Semi-transparent background with `bg-black/20`
+- **Dark mode**: Yellow tint in dark mode with `dark:bg-yellow-500/5`
+- **Aspect ratio**: Maintains square aspect with `aspect-square`
+- **Border radius**: Rounded corners with `rounded-2xl`
+
+### Text Styling
+
+- **Name heading**: Large, bold text (4xl on mobile, 5xl on larger screens)
+- **Bold text in bio**: Yellow color (`text-yellow-500`) with monospace font
+- **Paragraphs**: Large text size (`text-lg`) with bottom margin
+- **Text wrapping**: Uses `text-pretty` for better text layout
+
+## Usage Example
+
+Typically used in a section container on the main page:
+
+```astro
+---
+import Layout from '../layouts/Layout.astro';
+import SectionContainer from '../components/SectionContainer.astro';
+import AboutMe from '../components/AboutMe.astro';
+---
+
+<Layout>
+  <SectionContainer id="sobre-mi">
+    <AboutMe />
+  </SectionContainer>
+</Layout>
+```
+
+## Database Setup
+
+### Create the Table
+
+```sql
+CREATE TABLE about_me (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  bio TEXT NOT NULL,
+  profile_image TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Insert Sample Data
+
+```sql
+INSERT INTO about_me (name, bio, profile_image) VALUES (
+  'John Doe',
+  'Hi, I am a **Full Stack Developer** passionate about building modern web applications.\n\nI specialize in **React**, **Node.js**, and **TypeScript**.',
+  'https://example.com/profile.jpg'
+);
+```
+
+## Customization Tips
+
+### Change Image Rotation
+
+```astro
+<img 
+  class="... rotate-6" <!-- Change from rotate-3 -->
+/>
+```
+
+### Modify Bold Text Color
+
+Update the Tailwind classes:
+
+```astro
+<div class="... [&>p>strong]:text-blue-500 dark:[&>p>strong]:text-blue-300">
+```
+
+### Adjust Image Size
+
+```astro
+<img 
+  class="... w-80 lg:w-80" <!-- Increase from w-64 -->
+/>
+```
+
+### Change Background Effect
+
+```astro
+<img 
+  class="... bg-blue-500/10 dark:bg-blue-500/20"
+/>
+```
+
+### Add Additional Fields
+
+Fetch more data from Supabase:
+
+```astro
+---
+const { data: aboutMe, error } = await supabase
+  .from("about_me")
+  .select("name, bio, profile_image, tagline, location")
+  .single()
+---
+
+<h2>{aboutMe.tagline}</h2>
+<p>{aboutMe.location}</p>
+```
+
+## Responsive Behavior
+
+- **Mobile**: Image appears first (order-1), text below
+- **Desktop**: Flexbox row layout with image on the right
+- **Spacing**: Gap increases on larger screens
+- **Text size**: Name heading scales from 4xl to 5xl
+
+## Error Handling
+
+If the Supabase query fails, a user-friendly error message is displayed:
+
+```astro
+<p class="text-center text-red-500 dark:text-red-400 mt-24 pt-6">
+  Error al cargar: {error.message}
+</p>
+```
+
+## Accessibility Features
+
+- Semantic `<article>` element
+- Proper heading hierarchy (h1 for name)
+- Alt text for profile image
+- High contrast text colors
+- Readable font sizes
+
+## Dark Mode Support
+
+Full dark mode support with:
+- Text color adjustments
+- Image background tint changes
+- Bold text color variations

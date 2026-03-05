@@ -1,0 +1,401 @@
+---
+title: Styling & Theming
+description: Customize the look and feel of your Astro Portfolio with Tailwind CSS
+---
+
+## Overview
+
+The Astro Portfolio uses **Tailwind CSS v4** for styling with custom animations, dark mode support, and the Onest Variable font family.
+
+## Tailwind CSS Configuration
+
+The portfolio uses Tailwind CSS v4 via the Vite plugin:
+
+```javascript
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+import tailwindcss from '@tailwindcss/vite';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel(),
+  vite: {
+    plugins: [tailwindcss()]
+  }
+});
+```
+
+### Global Styles
+
+Tailwind is imported in `src/styles/global.css`:
+
+```css
+@import "tailwindcss";
+```
+
+This file also defines CSS custom properties for theming:
+
+```css
+:root {
+  --accent: #d1d5dc;
+  --accent-dark: #2366d1;
+  --black: #333;
+  --gray: #666;
+  --gray-light: #f5f5f5;
+  --gray-dark: #444;
+  --gray-gradient: linear-gradient(
+    to right,
+    var(--gray-light) 0%,
+    var(--gray-dark) 100%
+  );
+}
+```
+
+## Font Setup
+
+The portfolio uses **Onest Variable**, a modern variable font with support for multiple weights.
+
+### Installation
+
+```bash
+npm install @fontsource-variable/onest
+```
+
+### Usage
+
+The font is imported in the main layout:
+
+```astro
+---
+// src/layouts/Layout.astro
+import "@fontsource-variable/onest"
+---
+```
+
+And applied globally:
+
+```css
+html {
+  font-family: "Onest Variable", sans-serif;
+  scroll-behavior: smooth;
+}
+```
+
+### Customizing the Font
+
+To use a different font:
+
+1. Install your font package:
+   ```bash
+   npm install @fontsource-variable/your-font
+   ```
+
+2. Import in `Layout.astro`:
+   ```astro
+   import "@fontsource-variable/your-font"
+   ```
+
+3. Update the CSS:
+   ```css
+   html {
+     font-family: "Your Font", sans-serif;
+   }
+   ```
+
+## Dark Mode
+
+The portfolio supports dark mode using Tailwind's `dark:` variant.
+
+### Background Gradient
+
+The background uses a responsive gradient that adapts to light/dark mode:
+
+```astro
+<div
+  class="absolute inset-0 z-[-2] min-h-screen w-full 
+  bg-gradient-to-br from-indigo-100 via-slate-100 to-blue-50
+  dark:from-indigo-900 dark:via-slate-900 dark:to-blue-900
+
+  before:content-[''] before:absolute before:inset-0 
+  before:bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.25),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(147,197,253,0.25),transparent_50%)]
+  dark:before:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.25),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(139,92,246,0.2),transparent_50%)]
+  
+  before:blur-3xl"
+></div>
+```
+
+### Color Scheme
+
+**Light mode:**
+- Background: Indigo to Blue gradient
+- Text: `text-black` → `#000000`
+- Accents: Blue and yellow highlights
+
+**Dark mode:**
+- Background: Deep indigo to blue gradient
+- Text: `dark:text-white` → `#ffffff`
+- Accents: Brighter blues and yellows
+
+### Customizing Dark Mode Colors
+
+Update the gradient colors in `src/layouts/Layout.astro`:
+
+```astro
+<div class="
+  bg-gradient-to-br from-your-light-color via-your-mid-color to-your-end-color
+  dark:from-your-dark-color dark:via-your-dark-mid dark:to-your-dark-end
+"></div>
+```
+
+## Custom Animations
+
+### Scroll-Based Navigation Blur
+
+The header navigation has a unique scroll-triggered blur effect using CSS scroll-driven animations:
+
+```css
+#header-nav {
+  animation: blur linear both 0.5s;
+  animation-timeline: scroll();
+  animation-range: 0 500px;
+}
+
+@keyframes blur {
+  from {
+    background-color: transparent;
+    backdrop-filter: blur(0px);
+    border: none;
+  }
+  to {
+    backdrop-filter: blur(20px);
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.1);
+    padding: 0.25rem 0.75rem;
+    background-color: rgba(229, 229, 229, 0.8);
+    border-radius: 9999px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+}
+```
+
+**Dark mode variant:**
+
+```css
+@media (prefers-color-scheme: dark) {
+  @keyframes blur {
+    from {
+      border: 0px;
+    }
+    to {
+      box-shadow:
+        0px 5px 50px -5px rgba(0, 0, 0, 0.1),
+        0px 0px 0 1px rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
+      border-width: 1px;
+      border-color: rgba(0, 0, 0);
+      background-color: rgba(0, 0, 0, 0.3);
+      border-radius: 9999px;
+    }
+  }
+}
+```
+
+**How it works:**
+- Activates when user scrolls 0-500px from top
+- Gradually applies blur and background
+- Creates a frosted glass effect
+- Adapts to light/dark mode
+
+### Pulse Animation
+
+Used for animated elements:
+
+```css
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 0.5; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.8; 
+    transform: scale(1.05); 
+  }
+}
+```
+
+Applied via Tailwind:
+```html
+<span class="animate-pulse">...</span>
+```
+
+### Accessibility: Reduced Motion
+
+Respects user's motion preferences:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+```
+
+## Color Customization
+
+### Accent Colors
+
+The portfolio uses specific accent colors:
+
+- **Yellow accent**: `text-yellow-400` - Used for headings and highlights
+- **Blue accent**: `text-blue-500` - Used for links and hover states
+
+### Tool Badge Colors
+
+Tool tags are color-coded by type (defined in `src/components/Projects.astro`):
+
+```javascript
+function getToolClass(toolType) {
+  switch(toolType) {
+    case 'frontend':
+      return 'bg-blue-600 text-white';
+    case 'backend':
+      return 'bg-green-600 text-white';
+    case 'database':
+      return 'bg-yellow-600 text-black';
+    case 'framework':
+      return 'bg-purple-600 text-white';
+    default:
+      return 'bg-gray-600 text-white';
+  }
+}
+```
+
+To customize, edit the colors in this function.
+
+## Custom Scrollbar
+
+The tools section has a custom scrollbar (in `src/components/Tools.astro`):
+
+```css
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) rgba(243, 244, 246, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.1);
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 8px;
+  border: 2px solid transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+}
+```
+
+## Responsive Design
+
+The portfolio uses Tailwind's responsive breakpoints:
+
+- **Mobile-first**: Base styles apply to mobile
+- **md**: `768px` and up (tablets)
+- **lg**: `1024px` and up (desktops)
+
+### Example Usage
+
+```astro
+<div class="
+  flex flex-col gap-8
+  md:flex-row md:gap-10
+  lg:gap-16
+">
+```
+
+## Utility Classes
+
+### Screen Reader Only
+
+Hide content visually but keep it accessible:
+
+```css
+.sr-only {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+```
+
+## Customization Examples
+
+### Change Primary Color
+
+Update all yellow accents to purple:
+
+```diff
+- class="text-yellow-400"
++ class="text-purple-400"
+
+- class="dark:text-yellow-100"
++ class="dark:text-purple-100"
+```
+
+### Adjust Background Gradient
+
+Change to a pink/purple gradient:
+
+```astro
+<div class="
+  bg-gradient-to-br from-pink-100 via-purple-100 to-rose-50
+  dark:from-pink-900 dark:via-purple-900 dark:to-rose-900
+">
+```
+
+### Disable Animations
+
+Remove the scroll blur effect:
+
+```diff
+- #header-nav {
+-   animation: blur linear both 0.5s;
+-   animation-timeline: scroll();
+-   animation-range: 0 500px;
+- }
+```
+
+## Browser Compatibility
+
+**Scroll-driven animations** require:
+- Chrome 115+
+- Edge 115+
+- Safari 16.4+ (partial support)
+
+For older browsers, the header will remain static (graceful degradation).
+
+## Next Steps
+
+- Learn about [Supabase configuration](/configuration/supabase)
+- Set up [environment variables](/configuration/environment)
+- Explore [component customization](/components/layout)
+
+<Tip>
+  Use browser DevTools to experiment with Tailwind classes in real-time before making permanent changes.
+</Tip>

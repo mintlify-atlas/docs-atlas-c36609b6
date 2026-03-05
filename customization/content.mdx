@@ -1,0 +1,318 @@
+---
+title: Managing Content
+description: Learn how to manage your portfolio content through Supabase
+---
+
+The Astro Portfolio uses Supabase as its backend for managing all dynamic content. This allows you to update your portfolio information without touching the code.
+
+## Setting Up Supabase
+
+The portfolio connects to Supabase using environment variables:
+
+```javascript
+// src/db/supabase.js
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+```
+
+Make sure to set these environment variables in your deployment platform (Vercel, Netlify, etc.) or in a `.env` file for local development:
+
+```bash
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-anon-key
+```
+
+## Database Tables
+
+The portfolio uses several interconnected tables to manage content:
+
+### About Me Table (`about_me`)
+
+Stores your personal information and bio.
+
+**Fields:**
+- `name` - Your full name
+- `bio` - Your biography (supports markdown with `**bold**` syntax)
+- `profile_image` - URL to your profile picture
+
+**Example:**
+```javascript
+// Fetched in src/components/AboutMe.astro
+const { data: aboutMe } = await supabase
+  .from("about_me")
+  .select("*")
+  .single()
+```
+
+**Usage Tips:**
+- Use `\n` in bio for paragraph breaks
+- Use `**text**` for highlighted text (renders in yellow)
+- Profile image should be at least 400x400px for best quality
+
+### Projects Table (`projects`)
+
+Manages your portfolio projects.
+
+**Fields:**
+- `id` - Unique identifier
+- `title` - Project name
+- `description` - Project description
+- `image` - Project screenshot URL
+- `codeLink` - GitHub repository URL
+- `PreviewLink` - Live demo URL
+- `visible` - Boolean to show/hide project
+- `created_at` - Timestamp (used for ordering)
+
+**Example:**
+```javascript
+// Projects are ordered by creation date, newest first
+const { data: projects } = await supabase
+  .from("projects")
+  .select("*")
+  .eq('visible', true)
+  .order('created_at', { ascending: false });
+```
+
+**Best Practices:**
+- Use high-quality project screenshots (recommended: 800x600px)
+- Keep descriptions concise (2-3 sentences)
+- Set `visible` to `false` for draft projects
+- Link tools to projects for automatic badge display
+
+### Career Table (`careers`)
+
+Tracks your work experience timeline.
+
+**Fields:**
+- `id` - Unique identifier
+- `position` - Job title
+- `company` - Company name
+- `description` - Job responsibilities and achievements
+- `contact` - Optional contact email
+- `period` - Time period (e.g., "2020 - 2023")
+- `visible` - Boolean to show/hide entry
+- `created_at` - Timestamp
+- `updated_at` - Timestamp
+
+**Example:**
+```javascript
+const { data: careers } = await supabase
+  .from("careers")
+  .select("*")
+  .order('period', { ascending: false })
+  .eq('visible', true)
+```
+
+**Best Practices:**
+- Order by most recent first
+- Keep descriptions focused on achievements
+- Use specific time periods for clarity
+
+### Tools Table (`tools`)
+
+Manages technologies and tools you use.
+
+**Fields:**
+- `id` - Unique identifier
+- `name` - Tool/technology name
+- `type` - Category: `Frontend`, `Backend`, `Database`, or `Framework`
+- `icon` - URL to tool icon/logo
+- `visible` - Boolean to show/hide tool
+
+**Example:**
+```javascript
+const { data: tools } = await supabase
+  .from("tools")
+  .select("*")
+  .eq("type", "Frontend")
+  .eq("visible", true)
+  .order("name");
+```
+
+**Tool Categories:**
+
+The type field determines the badge color in projects:
+
+```javascript
+function getToolClass(toolType) {
+  switch(toolType) {
+    case 'frontend':
+      return 'bg-blue-600 text-white';
+    case 'backend':
+      return 'bg-green-600 text-white';
+    case 'database':
+      return 'bg-yellow-600 text-black';
+    case 'framework':
+      return 'bg-purple-600 text-white';
+    default:
+      return 'bg-gray-600 text-white';
+  }
+}
+```
+
+### Certificates Table (`certificates`)
+
+Stores your certifications and credentials.
+
+**Fields:**
+- `id` - Unique identifier
+- `title` - Certificate name
+- `issuer` - Issuing organization
+- `type` - Certificate category
+- `date` - Issue date
+- `certificate_url` - Link to certificate
+- `visible` - Boolean to show/hide certificate
+
+## Relationship Tables
+
+### Project-Tool Relationship (`project_tool`)
+
+Links projects to the tools used in them.
+
+**Fields:**
+- `project_id` - Reference to projects table
+- `tool_id` - Reference to tools table
+
+**Example:**
+```javascript
+// Get all tools for specific projects
+const { data: projectTools } = await supabase
+  .from("project_tool")
+  .select("project_id, tool_id")
+  .in('project_id', projects.map(p => p.id));
+```
+
+**How It Works:**
+1. Tools are fetched from the tools table
+2. Project-tool relationships are queried
+3. Tools are matched to each project by ID
+4. Tool badges are displayed on project cards
+
+### Certificate-Tool Relationship (`certificate_tool`)
+
+Links certificates to specific tools/technologies.
+
+**Fields:**
+- `certificate_id` - Reference to certificates table
+- `tool_id` - Reference to tools table
+
+**Example:**
+```javascript
+const { data } = await supabase
+  .from("certificate_tool")
+  .select(`
+    certificate_id,
+    certificates:certificate_id (
+      id, title, issuer, type, date, certificate_url, visible
+    )
+  `)
+  .eq("tool_id", toolId)
+  .filter("certificates.visible", "eq", true);
+```
+
+**Interactive Feature:**
+- Tools with linked certificates show a yellow pulse indicator
+- Clicking the tool opens a modal displaying related certificates and projects
+
+## Content Management Workflow
+
+### Adding a New Project
+
+1. **Insert project record:**
+   ```sql
+   INSERT INTO projects (title, description, image, codeLink, PreviewLink, visible)
+   VALUES ('My New Project', 'A cool project', 'https://...', 'https://github.com/...', 'https://demo...', true);
+   ```
+
+2. **Link tools to the project:**
+   ```sql
+   -- Get the project ID (e.g., 5)
+   -- Get tool IDs (e.g., React = 1, Node.js = 3)
+   INSERT INTO project_tool (project_id, tool_id)
+   VALUES (5, 1), (5, 3);
+   ```
+
+3. The project will automatically appear on your portfolio with the correct tool badges.
+
+### Updating Your Bio
+
+1. Go to your Supabase dashboard
+2. Navigate to the `about_me` table
+3. Edit the `bio` field:
+   ```
+   Hi, I'm a developer with **5+ years** of experience.\n\nI specialize in **web development** and **cloud architecture**.
+   ```
+4. Changes appear immediately on your site
+
+### Managing Visibility
+
+All main tables have a `visible` field for easy content management:
+
+- Set `visible = false` to hide items without deleting them
+- Perfect for:
+  - Draft projects
+  - Seasonal content
+  - A/B testing different versions
+  - Temporarily hiding outdated information
+
+### Adding Tools and Certifications
+
+1. **Add a tool:**
+   ```sql
+   INSERT INTO tools (name, type, icon, visible)
+   VALUES ('React', 'Frontend', 'https://...icon.svg', true);
+   ```
+
+2. **Add a certification:**
+   ```sql
+   INSERT INTO certificates (title, issuer, date, certificate_url, visible)
+   VALUES ('React Advanced Certification', 'Meta', '2024-01-15', 'https://...', true);
+   ```
+
+3. **Link them together:**
+   ```sql
+   -- Assuming React tool_id = 1, certificate id = 10
+   INSERT INTO certificate_tool (certificate_id, tool_id)
+   VALUES (10, 1);
+   ```
+
+4. Now clicking on React in your tools section will show the certification!
+
+## Data Validation
+
+The application includes basic error handling:
+
+```javascript
+const { data: projects, error } = await supabase
+  .from("projects")
+  .select("*")
+  .eq('visible', true);
+
+if (error) {
+  // Error message is displayed to user
+  return <p>Error loading projects: {error.message}</p>;
+}
+```
+
+**Best Practices:**
+- Always set required fields (title, name, etc.)
+- Use valid URLs for images and links
+- Test links before publishing
+- Keep backup exports of your Supabase data
+
+## Content Organization Tips
+
+1. **Consistent Naming:** Use consistent capitalization for tool names
+2. **Image Strategy:** Host images on a CDN or Supabase Storage for best performance
+3. **Regular Updates:** Keep your career timeline and projects current
+4. **Quality Over Quantity:** 3-5 strong projects are better than 20 mediocre ones
+5. **Link Related Content:** Use the relationship tables to create rich connections
+
+## Next Steps
+
+- Learn how to customize the visual appearance in [Theming](/customization/theming)
+- Deploy your portfolio with [Deployment Guide](/deployment/vercel)

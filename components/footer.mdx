@@ -1,0 +1,340 @@
+---
+title: Footer Component
+description: Portfolio footer with copyright, navigation links, and contact information
+---
+
+## Overview
+
+The `Footer.astro` component provides a simple, clean footer for the portfolio. It displays copyright information with the current year, navigation links, and contact details. The footer is responsive and supports dark mode.
+
+## Location
+
+`src/components/Footer.astro`
+
+## Features
+
+### 1. Dynamic Copyright Year
+
+Automatically displays the current year:
+
+```javascript
+const currentYear = new Date().getFullYear()
+```
+
+```astro
+&copy; {currentYear}
+```
+
+### 2. Navigation Links
+
+Provides quick access to:
+- About Me section (`/#sobre-mi`)
+- Contact email (`mailto:Hazielgomez033@gmail.com`)
+
+### 3. Social Link
+
+LinkedIn profile link embedded in copyright text
+
+## Code Structure
+
+```astro
+---
+const currentYear = new Date().getFullYear()
+---
+
+<footer class="opacity-80 m-4 min-[375px]:pl-4 md:pl-0 mt-16 w-full mx-auto container lg:max-w-4xl md:max-w-2xl mb-10 flex justify-center">
+  <div class="rounded-lg w-full max-w-screen-xl mx-auto md:flex md:items-center md:justify-between py-4">
+    <!-- Copyright -->
+    <span class="text-sm sm:text-center text-zinc-800/90 dark:text-zinc-200/90">
+      &copy; {currentYear}
+      <a href="https://www.linkedin.com/in/hazielgmz/" class="hover:underline hover:text-current accent-link">
+        Hazielgmz
+      </a>. Casi todos los derechos reservados
+    </span>
+    
+    <!-- Navigation Links -->
+    <ul class="flex flex-wrap items-center mt-3 text-sm font-medium dark:text-white/90 sm:mt-0">
+      <li>
+        <a href="/#sobre-mi" class="hover:underline hover:text-current accent-link me-4 md:me-6">
+          Sobre mí
+        </a>
+      </li>
+      <li>
+        <a id="contacto" href="mailto:Hazielgomez033@gmail.com" class="hover:underline hover:text-current text-zinc-800/90 dark:text-zinc-200/90">
+          Contacto
+        </a>
+      </li>
+    </ul>
+  </div>
+</footer>
+```
+
+## Styling
+
+### Container Styling
+
+```css
+opacity-80          /* Slightly transparent */
+m-4                 /* Margin on all sides */
+min-[375px]:pl-4    /* Left padding on small screens */
+md:pl-0             /* No left padding on medium+ screens */
+mt-16               /* Top margin */
+w-full              /* Full width */
+mx-auto             /* Center horizontally */
+container           /* Container class */
+lg:max-w-4xl        /* Max width on large screens */
+md:max-w-2xl        /* Max width on medium screens */
+mb-10               /* Bottom margin */
+flex justify-center /* Flexbox centered */
+```
+
+### Custom Accent Color
+
+```css
+.accent-link {
+  color: var(--accent);
+}
+```
+
+The `--accent` CSS variable should be defined in your global styles.
+
+## Layout
+
+### Mobile Layout
+- Vertical stack
+- Copyright text centered
+- Links below with margin-top
+
+### Desktop Layout
+- Horizontal flexbox
+- Copyright on left
+- Links on right
+- Items vertically centered
+
+## Usage Example
+
+The Footer is typically imported and used in the Layout component:
+
+```astro
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<body>
+  <Header />
+  <slot />
+  <Footer />
+</body>
+```
+
+## Customization Tips
+
+### Update Contact Email
+
+```astro
+<a href="mailto:your.email@example.com" ...>
+  Contacto
+</a>
+```
+
+### Change LinkedIn Profile
+
+```astro
+<a href="https://www.linkedin.com/in/your-profile/" ...>
+  YourName
+</a>
+```
+
+### Add More Navigation Links
+
+```astro
+<ul class="flex flex-wrap items-center mt-3 text-sm font-medium dark:text-white/90 sm:mt-0">
+  <li>
+    <a href="/#sobre-mi" class="...me-4 md:me-6">Sobre mí</a>
+  </li>
+  <li>
+    <a href="/#proyectos" class="...me-4 md:me-6">Proyectos</a>
+  </li>
+  <li>
+    <a href="/#herramientas" class="...me-4 md:me-6">Herramientas</a>
+  </li>
+  <li>
+    <a href="mailto:your@email.com" class="...">Contacto</a>
+  </li>
+</ul>
+```
+
+### Add Social Media Icons
+
+```astro
+<ul class="flex flex-wrap items-center mt-3 text-sm font-medium dark:text-white/90 sm:mt-0">
+  <li class="me-4">
+    <a href="https://github.com/username" target="_blank" class="hover:text-current">
+      <svg class="w-5 h-5"><!-- GitHub icon --></svg>
+    </a>
+  </li>
+  <li class="me-4">
+    <a href="https://twitter.com/username" target="_blank" class="hover:text-current">
+      <svg class="w-5 h-5"><!-- Twitter icon --></svg>
+    </a>
+  </li>
+  <!-- Existing text links -->
+</ul>
+```
+
+### Change Copyright Text
+
+```astro
+<span class="text-sm sm:text-center text-zinc-800/90 dark:text-zinc-200/90">
+  &copy; {currentYear} <a href="...">Your Name</a>. All rights reserved.
+</span>
+```
+
+### Adjust Opacity
+
+```astro
+<footer class="opacity-90 ..."> <!-- Changed from opacity-80 -->
+```
+
+### Change Max Width
+
+```astro
+<footer class="... lg:max-w-6xl md:max-w-4xl ..."> <!-- Wider footer -->
+```
+
+### Add Divider Line
+
+```astro
+<footer class="... border-t border-gray-200 dark:border-gray-800 pt-8">
+```
+
+### Multi-Column Footer
+
+```astro
+<footer>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8 py-8">
+    <!-- Column 1: About -->
+    <div>
+      <h3 class="font-bold mb-2">About</h3>
+      <p class="text-sm">Brief description...</p>
+    </div>
+    
+    <!-- Column 2: Links -->
+    <div>
+      <h3 class="font-bold mb-2">Quick Links</h3>
+      <ul class="text-sm space-y-1">
+        <li><a href="/#sobre-mi">About</a></li>
+        <li><a href="/#proyectos">Projects</a></li>
+      </ul>
+    </div>
+    
+    <!-- Column 3: Contact -->
+    <div>
+      <h3 class="font-bold mb-2">Contact</h3>
+      <p class="text-sm">email@example.com</p>
+    </div>
+  </div>
+  
+  <!-- Copyright row -->
+  <div class="border-t border-gray-200 dark:border-gray-800 py-4 text-center text-sm">
+    &copy; {currentYear} Your Name. All rights reserved.
+  </div>
+</footer>
+```
+
+## Responsive Breakpoints
+
+- **min-[375px]**: Small mobile devices (iPhone SE, etc.)
+- **sm**: 640px and up
+- **md**: 768px and up
+- **lg**: 1024px and up
+
+## Accessibility Features
+
+- Semantic `<footer>` element
+- Proper link semantics
+- `mailto:` protocol for email
+- High contrast text colors
+- Underline on hover for clear link indication
+- Adequate touch target sizes
+
+## Dark Mode Support
+
+- Text colors adjust automatically:
+  - Light mode: `text-zinc-800/90`
+  - Dark mode: `dark:text-zinc-200/90`
+- Link colors maintain readability in both modes
+- Accent color (via CSS variable) should support both themes
+
+## CSS Variables Used
+
+### --accent
+
+Define this in your global CSS:
+
+```css
+:root {
+  --accent: #3b82f6; /* Blue */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #60a5fa; /* Lighter blue for dark mode */
+  }
+}
+```
+
+## Integration Notes
+
+- Included in Layout.astro by default
+- Appears at the bottom of every page
+- Uses same max-width container as other sections for consistency
+- Opacity set to 80% to be visually subtle
+- Margin-top pushes it away from main content
+
+## Common Patterns
+
+### Newsletter Signup
+
+```astro
+<footer>
+  <div class="max-w-4xl mx-auto py-8">
+    <div class="mb-8">
+      <h3 class="text-lg font-bold mb-2">Subscribe to my newsletter</h3>
+      <form class="flex gap-2">
+        <input 
+          type="email" 
+          placeholder="your@email.com" 
+          class="flex-1 px-4 py-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+        />
+        <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          Subscribe
+        </button>
+      </form>
+    </div>
+    
+    <!-- Existing footer content -->
+  </div>
+</footer>
+```
+
+### Back to Top Button
+
+```astro
+<footer>
+  <div class="text-center mb-4">
+    <a 
+      href="#" 
+      class="inline-flex items-center gap-2 text-sm hover:underline accent-link"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+      </svg>
+      Back to top
+    </a>
+  </div>
+  
+  <!-- Existing footer content -->
+</footer>
+```

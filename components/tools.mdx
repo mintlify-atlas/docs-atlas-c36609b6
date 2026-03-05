@@ -1,0 +1,472 @@
+---
+title: Tools Component
+description: Interactive tools showcase with modal displaying related certificates and projects using Alpine.js
+---
+
+## Overview
+
+The `Tools.astro` component displays a categorized grid of technologies and tools. It features an interactive modal powered by Alpine.js that shows certificates and projects related to each tool. Tools are organized by category (Frontend, Backend, Database, Frameworks) and fetched from Supabase.
+
+## Location
+
+`src/components/Tools.astro`
+
+## Key Features
+
+1. **Multi-table Supabase queries** for tools, certificates, and projects
+2. **Alpine.js modal** for interactive tool details
+3. **Horizontal scrollable** tool grids per category
+4. **Visual indicators** (pulsing dot) for tools with related content
+5. **Related content display** (certificates and projects)
+
+## Supabase Integration
+
+### 1. Fetch Tools by Category
+
+```javascript
+async function fetchToolsByType(type: string) {
+  const { data, error } = await supabase
+    .from("tools")
+    .select("*")
+    .eq("type", type)
+    .eq("visible", true)
+    .order("name");
+
+  if (error) console.error(`Error fetching ${type} tools:`, error);
+  return data || [];
+}
+```
+
+### 2. Fetch Tool Certificates
+
+```javascript
+async function fetchToolCertificates(toolId: number) {
+  const { data, error } = await supabase
+    .from("certificate_tool")
+    .select(`
+      certificate_id,
+      certificates:certificate_id (
+        id, title, issuer, type, date, certificate_url, visible
+      )
+    `)
+    .eq("tool_id", toolId)
+    .filter("certificates.visible", "eq", true);
+
+  if (error) console.error(`Error fetching certificates for tool ${toolId}:`, error);
+  return data?.map(item => item.certificates).filter(Boolean) || [];
+}
+```
+
+### 3. Fetch Tool Projects
+
+```javascript
+async function fetchToolProjects(toolId: number) {
+  const { data, error } = await supabase
+    .from("project_tool")
+    .select(`
+      project_id,
+      projects:project_id (
+        id, title, description, codeLink, PreviewLink, image, visible
+      )
+    `)
+    .eq("tool_id", toolId)
+    .filter("projects.visible", "eq", true);
+
+  if (error) console.error(`Error fetching projects for tool ${toolId}:`, error);
+  return data?.map(item => item.projects).filter(Boolean) || [];
+}
+```
+
+## Database Schema
+
+### tools Table
+
+<ParamField path="id" type="number" required>
+  Primary key
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  Tool/technology name
+</ParamField>
+
+<ParamField path="type" type="string" required>
+  Category: Frontend, Backend, Database, Framework
+</ParamField>
+
+<ParamField path="icon" type="string">
+  URL to tool icon/logo
+</ParamField>
+
+<ParamField path="visible" type="boolean" default={true}>
+  Whether to display this tool
+</ParamField>
+
+### certificates Table
+
+<ParamField path="id" type="number" required>
+  Primary key
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Certificate name
+</ParamField>
+
+<ParamField path="issuer" type="string" required>
+  Issuing organization
+</ParamField>
+
+<ParamField path="type" type="string">
+  Certificate type/category
+</ParamField>
+
+<ParamField path="date" type="date" required>
+  Issue date
+</ParamField>
+
+<ParamField path="certificate_url" type="string" required>
+  URL to certificate
+</ParamField>
+
+<ParamField path="visible" type="boolean" default={true}>
+  Whether to display this certificate
+</ParamField>
+
+### Junction Tables
+
+**certificate_tool**: Links certificates to tools
+- `certificate_id` (references certificates.id)
+- `tool_id` (references tools.id)
+
+**project_tool**: Links projects to tools (see Projects component)
+- `project_id` (references projects.id)
+- `tool_id` (references tools.id)
+
+## Alpine.js State Management
+
+```javascript
+x-data="{
+  selectedTool: null,
+  modalOpen: false,
+  openModal(tool) {
+    this.selectedTool = tool;
+    this.modalOpen = true;
+  },
+  closeModal() {
+    this.modalOpen = false;
+    setTimeout(() => this.selectedTool = null, 300);
+  }
+}"
+```
+
+## Code Structure
+
+### Categories Setup
+
+```javascript
+const categories = [
+  { type: "Frontend", title: "Frontend" },
+  { type: "Backend", title: "Backend" },
+  { type: "Database", title: "Database" },
+  { type: "Framework", title: "Frameworks" }
+];
+
+const results = await Promise.all(
+  categories.map(c => fetchToolsByType(c.type))
+);
+
+const sections = categories.map((c, i) => ({
+  ...c,
+  tools: results[i]
+}));
+```
+
+### Tool Card with Click Handler
+
+```astro
+<div 
+  class={`flex flex-col items-center space-y-3 min-w-[65px] ${
+    tool.hasRelatedContent ? 'cursor-pointer transition hover:scale-110' : ''
+  }`}
+  x-on:click={tool.hasRelatedContent ? `openModal(${JSON.stringify(tool)})` : null}
+>
+  <div class="w-16 h-16 flex items-center justify-center relative">
+    {tool.icon ? (
+      <img src={tool.icon} alt={`${tool.name} icon`} class="w-12 h-12" />
+    ) : (
+      <svg viewBox="0 0 24 24" class="w-12 h-12">
+        <path fill="currentColor" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+      </svg>
+    )}
+    {tool.hasRelatedContent && (
+      <span class="absolute -top-5 -right-0 w-2 h-2 bg-[#fdc700] rounded-full shadow animate-pulse"></span>
+    )}
+  </div>
+  <h3 class="text-gray-600 dark:text-gray-300">{tool.name}</h3>
+</div>
+```
+
+### Modal Structure
+
+```astro
+<div 
+  x-show="modalOpen" 
+  class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+  x-cloak
+>
+  <div 
+    x-show="modalOpen" 
+    @click.away="closeModal()"
+    class="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl"
+  >
+    <!-- Modal header -->
+    <div class="flex items-center justify-between p-4 md:p-5 border-b">
+      <h3 class="text-xl font-semibold flex items-center gap-3">
+        <img x-bind:src="selectedTool?.icon" x-bind:alt="selectedTool?.name" class="w-8 h-8" />
+        <span x-text="selectedTool?.name"></span>
+      </h3>
+      <button type="button" @click="closeModal()">
+        <!-- Close icon -->
+      </button>
+    </div>
+
+    <!-- Modal body -->
+    <div class="p-4 md:p-5 space-y-4">
+      <!-- Certificates section -->
+      <template x-if="selectedTool?.certificates?.length > 0">
+        <!-- Certificate cards -->
+      </template>
+
+      <!-- Projects section -->
+      <template x-if="selectedTool?.projects?.length > 0">
+        <!-- Project cards -->
+      </template>
+
+      <!-- Empty state -->
+      <template x-if="!selectedTool?.certificates?.length && !selectedTool?.projects?.length">
+        <p>No hay certificados ni proyectos relacionados...</p>
+      </template>
+    </div>
+  </div>
+</div>
+```
+
+## Visual Features
+
+### Horizontal Scroll
+
+```astro
+<div class="flex overflow-x-auto snap-x scroll-smooth scroll-pl-6 gap-8 pb-4 custom-scrollbar">
+  <!-- Tool items -->
+</div>
+```
+
+Custom scrollbar styles:
+
+```css
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) rgba(243, 244, 246, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 8px;
+}
+```
+
+### Pulsing Indicator
+
+```astro
+{tool.hasRelatedContent && (
+  <span class="absolute -top-5 -right-0 w-2 h-2 bg-[#fdc700] rounded-full shadow animate-pulse"></span>
+)}
+```
+
+### Modal Transitions
+
+```astro
+x-transition:enter="transition ease-out duration-300"
+x-transition:enter-start="opacity-0 transform scale-95"
+x-transition:enter-end="opacity-100 transform scale-100"
+x-transition:leave="transition ease-in duration-200"
+x-transition:leave-start="opacity-100 transform scale-100"
+x-transition:leave-end="opacity-0 transform scale-95"
+```
+
+## Usage Example
+
+```astro
+---
+import Layout from '../layouts/Layout.astro';
+import SectionContainer from '../components/SectionContainer.astro';
+import TitleSection from '../components/TitleSection.astro';
+import Tools from '../components/Tools.astro';
+---
+
+<Layout title="My Tools">
+  <SectionContainer id="herramientas">
+    <TitleSection>
+      <svg slot="icon"><!-- Tools icon --></svg>
+      Technologies & Tools
+    </TitleSection>
+    <Tools />
+  </SectionContainer>
+</Layout>
+```
+
+## Database Setup
+
+### Create Tables
+
+```sql
+-- Tools table
+CREATE TABLE tools (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  icon TEXT,
+  visible BOOLEAN DEFAULT true
+);
+
+-- Certificates table
+CREATE TABLE certificates (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  issuer VARCHAR(255) NOT NULL,
+  type VARCHAR(100),
+  date DATE NOT NULL,
+  certificate_url TEXT NOT NULL,
+  visible BOOLEAN DEFAULT true
+);
+
+-- Certificate-Tool junction
+CREATE TABLE certificate_tool (
+  certificate_id INTEGER REFERENCES certificates(id) ON DELETE CASCADE,
+  tool_id INTEGER REFERENCES tools(id) ON DELETE CASCADE,
+  PRIMARY KEY (certificate_id, tool_id)
+);
+```
+
+### Insert Sample Data
+
+```sql
+-- Insert tools
+INSERT INTO tools (name, type, icon) VALUES
+('React', 'Frontend', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg'),
+('PostgreSQL', 'Database', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg');
+
+-- Insert certificate
+INSERT INTO certificates (title, issuer, type, date, certificate_url) VALUES
+('React Advanced Patterns', 'Frontend Masters', 'Course', '2024-01-15', 'https://example.com/cert.pdf');
+
+-- Link certificate to tool
+INSERT INTO certificate_tool (certificate_id, tool_id) VALUES (1, 1);
+```
+
+## Customization Tips
+
+### Add New Categories
+
+```javascript
+const categories = [
+  { type: "Frontend", title: "Frontend" },
+  { type: "Backend", title: "Backend" },
+  { type: "Database", title: "Database" },
+  { type: "Framework", title: "Frameworks" },
+  { type: "DevOps", title: "DevOps" }, // New category
+  { type: "Design", title: "Design Tools" } // New category
+];
+```
+
+### Change Grid Layout
+
+```astro
+<div class="grid grid-cols-2 md:grid-cols-3 gap-8 mt-15"> <!-- Changed from grid-cols-1 md:grid-cols-2 -->
+```
+
+### Disable Modal for All Tools
+
+```astro
+<div 
+  class="flex flex-col items-center space-y-3 min-w-[65px]"
+  <!-- Remove x-on:click -->
+>
+```
+
+### Change Indicator Color
+
+```astro
+<span class="... bg-blue-500"></span> <!-- Changed from bg-[#fdc700] -->
+```
+
+### Modify Modal Size
+
+```astro
+<div class="w-full max-w-4xl..."> <!-- Changed from max-w-2xl -->
+```
+
+### Add Tool Descriptions
+
+Extend database:
+
+```sql
+ALTER TABLE tools ADD COLUMN description TEXT;
+```
+
+Display in modal:
+
+```astro
+<div class="p-4 md:p-5 space-y-4">
+  <p class="text-gray-600 dark:text-gray-300" x-text="selectedTool?.description"></p>
+  <!-- Rest of modal content -->
+</div>
+```
+
+## Performance Considerations
+
+- Uses `Promise.all` to fetch tools in parallel
+- Related content (certificates/projects) fetched for all tools upfront
+- Alpine.js is lightweight (~15kb)
+- Images use proper sizing attributes
+
+## Accessibility Features
+
+- Semantic HTML structure
+- Close button with proper aria labels
+- Modal click-outside-to-close
+- Keyboard navigation support (Alpine.js built-in)
+- High contrast colors
+- Focus management
+
+## Alpine.js Features Used
+
+- `x-data`: Component state
+- `x-show`: Conditional rendering
+- `x-on:click`: Event handling
+- `x-bind`: Dynamic attributes
+- `x-text`: Text content binding
+- `x-if`: Conditional templates
+- `x-for`: List rendering
+- `x-transition`: Animations
+- `x-cloak`: Hide uninitialized content
+- `@click.away`: Click outside handler
+
+## Dark Mode Support
+
+Full dark mode with:
+- Modal background colors
+- Text color adjustments
+- Border colors
+- Card hover states
+- Link colors
+
+## Browser Compatibility
+
+Requires:
+- Modern browser with CSS Grid support
+- JavaScript enabled (for Alpine.js)
+- CSS custom scrollbar support (graceful degradation)
