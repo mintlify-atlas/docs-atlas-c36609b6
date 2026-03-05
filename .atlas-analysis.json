@@ -1,0 +1,75 @@
+{
+  "projectType": "frontend",
+  "projectName": "Astro Portfolio",
+  "projectDescription": "A modern portfolio website template built with Astro, Tailwind CSS, and Supabase for dynamic content management.",
+  "theme": "almond",
+  "primaryColor": "#BC52EE",
+  "lightColor": "#38B2AC",
+  "darkColor": "#3ECF8E",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "introduction",
+          "quickstart",
+          "features"
+        ]
+      },
+      {
+        "group": "Components",
+        "pages": [
+          "components/layout",
+          "components/header",
+          "components/about-me",
+          "components/career",
+          "components/projects",
+          "components/tools",
+          "components/footer"
+        ]
+      },
+      {
+        "group": "Configuration",
+        "pages": [
+          "configuration/supabase",
+          "configuration/environment",
+          "configuration/styling"
+        ]
+      },
+      {
+        "group": "Deployment",
+        "pages": [
+          "deployment/vercel",
+          "deployment/build"
+        ]
+      },
+      {
+        "group": "Customization",
+        "pages": [
+          "customization/content",
+          "customization/theming"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Server-side rendering with Astro",
+    "Responsive design with Tailwind CSS",
+    "Dynamic content from Supabase",
+    "Interactive modals with Alpine.js",
+    "Animated scroll-based navigation",
+    "Project showcase with tools filtering",
+    "Career timeline display",
+    "Certification management"
+  ],
+  "publicApiSurface": [
+    "Layout.astro - Main layout wrapper",
+    "Header.astro - Navigation with scroll animations",
+    "AboutMe.astro - Profile section with bio",
+    "Career.astro - Career timeline",
+    "Projects.astro - Project cards with tool badges",
+    "Tools.astro - Interactive tool grid with modals",
+    "Footer.astro - Footer component",
+    "supabase.js - Supabase client configuration"
+  ]
+}
